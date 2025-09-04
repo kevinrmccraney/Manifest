@@ -10,6 +10,7 @@ import SwiftData
 
 struct BandedItemListView: View {
     let items: [Item]
+    let showAttachmentIcons: Bool
     @Environment(\.modelContext) private var modelContext
     @State private var itemToDelete: Item?
     @State private var showingDeleteAlert = false
@@ -19,7 +20,11 @@ struct BandedItemListView: View {
             LazyVStack(spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                     NavigationLink(destination: ItemDetailView(item: item)) {
-                        BandedItemRowView(item: item, isEvenRow: index % 2 == 0)
+                        BandedItemRowView(
+                            item: item,
+                            isEvenRow: index % 2 == 0,
+                            showAttachmentIcons: showAttachmentIcons
+                        )
                     }
                     .buttonStyle(PlainButtonStyle())
                     .contextMenu {

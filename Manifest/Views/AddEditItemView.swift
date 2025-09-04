@@ -23,6 +23,7 @@ struct AddEditItemView: View {
     @State private var tags: [String] = []
     @State private var newTag = ""
     @State private var attachments: [FileAttachment] = []
+    @State private var itemID: UUID = UUID() // Create UUID immediately
     
     // Legacy support
     @State private var selectedFileURL: URL?
@@ -40,10 +41,12 @@ struct AddEditItemView: View {
             _tags = State(initialValue: item.tags)
             _attachments = State(initialValue: item.attachments)
             _attachmentDescription = State(initialValue: item.attachmentDescription ?? item.attachmentFilename ?? "")
+            _itemID = State(initialValue: item.id) // Use existing ID for editing
             
             let fieldsDict = item.customFieldsDict
             _customFields = State(initialValue: fieldsDict.map { CustomField(key: $0.key, value: $0.value) })
         }
+        // For new items, itemID is already initialized with UUID()
     }
     
     var body: some View {
@@ -66,7 +69,12 @@ struct AddEditItemView: View {
                 
                 MultiFileAttachmentFormSection(attachments: $attachments)
                 
-                QRCodeGeneratorSection(item: item, attachments: $attachments)
+                QRCodeGeneratorSection(
+                    item: item,
+                    itemName: name.isEmpty ? "Untitled Item" : name,
+                    itemID: itemID,
+                    attachments: $attachments
+                )
                 
                 CustomFieldsFormSection(customFields: $customFields)
             }
@@ -123,6 +131,11 @@ struct AddEditItemView: View {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
         
+        print("Saving item with \(attachments.count) attachments")
+        for (index, attachment) in attachments.enumerated() {
+            print("Attachment \(index): \(attachment.filename) (ID: \(attachment.id))")
+        }
+        
         if let existingItem = item {
             // Edit existing item
             existingItem.name = trimmedName
@@ -152,7 +165,7 @@ struct AddEditItemView: View {
             )
             existingItem.setCustomFields(fieldsDict)
         } else {
-            // Create new item
+            // Create new item with the pre-generated UUID
             let newItem = Item(
                 name: trimmedName,
                 itemDescription: trimmedDescription,
@@ -160,6 +173,9 @@ struct AddEditItemView: View {
                 customFields: nil,
                 tags: tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             )
+            
+            // Override the auto-generated ID with our pre-generated one
+            newItem.id = itemID
             
             newItem.setThumbnailImage(selectedImage)
             

@@ -10,6 +10,7 @@ import SwiftUI
 struct BandedItemRowView: View {
     let item: Item
     let isEvenRow: Bool
+    let showAttachmentIcons: Bool
     
     var rowBackground: Color {
         isEvenRow ? AppTheme.evenRowBackground : AppTheme.oddRowBackground
@@ -73,8 +74,8 @@ struct BandedItemRowView: View {
             
             Spacer()
             
-            // File attachment indicator with count
-            if item.hasAnyAttachment {
+            // File attachment indicator with count - only show if setting is enabled
+            if item.hasAnyAttachment && showAttachmentIcons {
                 HStack(spacing: 2) {
                     Image(systemName: item.fileIcon)
                         .foregroundColor(.secondary)

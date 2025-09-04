@@ -5,14 +5,19 @@
 //  Created by Kevin McCraney on 2025-09-03.
 //
 
-
 import SwiftUI
 
 struct FileAttachmentRow: View {
     @Bindable var attachment: FileAttachment
     let onPreview: () -> Void
+    let onDownload: () -> Void
     let onDelete: () -> Void
     @State private var isEditingDescription = false
+    
+    // Check if this is a QR code file
+    private var isQRCode: Bool {
+        attachment.filename.hasPrefix("QR_Code_") && attachment.filename.hasSuffix(".png")
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -43,6 +48,14 @@ struct FileAttachmentRow: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 
+                // Add download button
+                Button(action: onDownload) {
+                    Image(systemName: "square.and.arrow.down")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                }
+                .padding(.horizontal, 8)
+                
                 Button("Delete") {
                     onDelete()
                 }
@@ -51,7 +64,7 @@ struct FileAttachmentRow: View {
             }
             
             HStack {
-                if isEditingDescription {
+                if isEditingDescription && !isQRCode {
                     TextField("Description", text: $attachment.fileDescription)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit {
@@ -62,16 +75,20 @@ struct FileAttachmentRow: View {
                         .font(.caption)
                         .foregroundColor(.primary)
                         .onTapGesture {
-                            isEditingDescription = true
+                            if !isQRCode {
+                                isEditingDescription = true
+                            }
                         }
                     
                     Spacer()
                     
-                    Button("Edit") {
-                        isEditingDescription = true
+                    if !isQRCode {
+                        Button("Edit") {
+                            isEditingDescription = true
+                        }
+                        .font(.caption2)
+                        .foregroundColor(.blue)
                     }
-                    .font(.caption2)
-                    .foregroundColor(.blue)
                 }
             }
         }

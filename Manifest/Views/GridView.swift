@@ -10,6 +10,7 @@ import SwiftData
 
 struct GridView: View {
     let items: [Item]
+    let showAttachmentIcons: Bool
     @Environment(\.modelContext) private var modelContext
     @State private var itemToDelete: Item?
     @State private var showingDeleteAlert = false

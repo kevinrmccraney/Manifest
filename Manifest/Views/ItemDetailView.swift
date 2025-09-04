@@ -21,20 +21,14 @@ struct ItemDetailView: View {
                     // Title and description
                     TitleDescriptionSection(item: item)
                     
-                    // Tags
-                    if !item.tags.isEmpty {
-                        TagsDisplayView(tags: item.tags)
-                    }
-                    
                     // File attachments - both new and legacy
                     if item.hasAnyAttachment {
                         MultiAttachmentsDisplayView(item: item)
                     }
                     
-                    // Custom fields
-                    let customFields = item.customFieldsDict
-                    if !customFields.isEmpty {
-                        CustomFieldsDisplayView(customFields: customFields)
+                    // Tags
+                    if !item.tags.isEmpty {
+                        TagsDisplayView(tags: item.tags)
                     }
                     
                     // Timestamps

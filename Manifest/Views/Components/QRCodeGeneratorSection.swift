@@ -1,11 +1,3 @@
-    //
-//  QRCodeGeneratorSection.swift
-//  Manifest
-//
-//  Created by Kevin McCraney on 2025-09-03.
-//
-
-
 //
 //  QRCodeGeneratorSection.swift
 //  Manifest
@@ -19,31 +11,49 @@ import UIKit
 
 struct QRCodeGeneratorSection: View {
     let item: Item?
+    let itemName: String  // Add item name parameter
+    let itemID: UUID      // Add item ID parameter
     @Binding var attachments: [FileAttachment]
     @State private var showingQRGenerator = false
     @State private var isGenerating = false
     
+    // Check if QR code already exists
+    private var hasQRCode: Bool {
+        attachments.contains { attachment in
+            attachment.filename.hasPrefix("QR_Code_") && attachment.filename.hasSuffix(".png")
+        }
+    }
+    
     var body: some View {
         Section(header: Text("QR Code")) {
-            Button(action: generateQRCode) {
-                HStack {
-                    Image(systemName: "qrcode")
-                    Text("Generate QR Code for Item")
-                    if isGenerating {
-                        Spacer()
-                        ProgressView()
-                            .scaleEffect(0.8)
+            if !hasQRCode {
+                Button(action: generateQRCode) {
+                    HStack {
+                        Image(systemName: "qrcode")
+                        Text("Generate QR Code for Item")
+                        if isGenerating {
+                            Spacer()
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        }
                     }
                 }
+                .disabled(isGenerating)
+                .buttonStyle(.bordered)
+            } else {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("QR Code generated")
+                        .foregroundColor(.secondary)
+                }
+                .font(.caption)
             }
-            .disabled(isGenerating)
-            .buttonStyle(.bordered)
         }
     }
     
     private func generateQRCode() {
-        guard let itemID = item?.id else { return }
-        
+        print("Starting QR code generation for item: \(itemName)")
         isGenerating = true
         
         DispatchQueue.global(qos: .userInitiated).async {
@@ -58,16 +68,19 @@ struct QRCodeGeneratorSection: View {
                 return
             }
             
-            // Create file attachment
+            // Create file attachment with item name
             let qrAttachment = FileAttachment(
-                filename: "QR_Code_\(itemID.uuidString.prefix(8)).png",
-                fileDescription: "QR Code for \(item?.name ?? "Item")",
+                filename: "QR_Code_\(itemName.replacingOccurrences(of: " ", with: "_")).png",
+                fileDescription: "QR Code for \(itemName)",
                 fileData: pngData,
                 mimeType: "image/png"
             )
             
+            print("Created QR attachment with ID: \(qrAttachment.id)")
+            
             DispatchQueue.main.async {
                 attachments.append(qrAttachment)
+                print("Added QR code attachment. Total attachments: \(attachments.count)")
                 isGenerating = false
             }
         }

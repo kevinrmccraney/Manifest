@@ -68,5 +68,20 @@ struct FilePreviewView: UIViewControllerRepresentable {
         func previewControllerDidDismiss(_ controller: QLPreviewController) {
             parent.dismiss()
         }
+        
+        // Add support for sharing/saving files
+        func previewController(_ controller: QLPreviewController, editingModeFor previewItem: QLPreviewItem) -> QLPreviewItemEditingMode {
+            return .disabled
+        }
+        
+        // Enable the action button (share/save)
+        func previewController(_ controller: QLPreviewController, shouldOpen url: URL, for item: QLPreviewItem) -> Bool {
+            return true
+        }
+        
+        // Handle sharing actions
+        func previewController(_ controller: QLPreviewController, transitionViewFor item: QLPreviewItem) -> UIView? {
+            return nil
+        }
     }
 }

@@ -12,12 +12,12 @@ struct TimestampSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Created: \(item.createdAt.formatted(date: .abbreviated, time: .shortened))")
+            Text("Created \(item.createdAt.formatted(date: .abbreviated, time: .shortened))")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
             
             if item.updatedAt != item.createdAt {
-                Text("Updated: \(item.updatedAt.formatted(date: .abbreviated, time: .shortened))")
+                Text("Updated \(item.updatedAt.formatted(date: .abbreviated, time: .shortened))")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }

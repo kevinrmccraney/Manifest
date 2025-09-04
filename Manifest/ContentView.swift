@@ -13,9 +13,13 @@ struct ContentView: View {
     @Query(sort: \Item.createdAt, order: .reverse) private var allItems: [Item]
     
     @State private var showingAddItem = false
-    @State private var showingGridView = false
     @State private var showingSearch = false
+    @State private var showingSettings = false
     @State private var searchText = ""
+    @State private var settings = AppSettings.shared
+    
+    // Use settings for initial view mode
+    @State private var showingGridView = AppSettings.shared.defaultViewMode == .grid
     
     var filteredItems: [Item] {
         if searchText.isEmpty {
@@ -50,10 +54,10 @@ struct ContentView: View {
                         .background(AppTheme.secondaryBackground)
                 } else {
                     if showingGridView {
-                        GridView(items: filteredItems)
+                        GridView(items: filteredItems, showAttachmentIcons: settings.showAttachmentIcons)
                             .background(AppTheme.secondaryBackground)
                     } else {
-                        BandedItemListView(items: filteredItems)
+                        BandedItemListView(items: filteredItems, showAttachmentIcons: settings.showAttachmentIcons)
                             .background(AppTheme.secondaryBackground)
                     }
                 }
@@ -72,6 +76,10 @@ struct ContentView: View {
                         }
                     }
                     
+                    Button(action: { showingSettings = true }) {
+                        Image(systemName: "gearshape")
+                    }
+                    
                     Button(action: { showingAddItem = true }) {
                         Image(systemName: "plus")
                     }
@@ -79,6 +87,9 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingAddItem) {
                 AddEditItemView()
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
             }
         }
         .background(AppTheme.secondaryBackground.ignoresSafeArea()) // Overall grey background

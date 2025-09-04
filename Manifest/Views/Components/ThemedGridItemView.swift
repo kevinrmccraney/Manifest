@@ -12,7 +12,7 @@ struct ThemedGridItemView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Thumbnail
+            // Thumbnail - fixed height
             ZStack(alignment: .topTrailing) {
                 if let image = item.thumbnailImage {
                     Image(uiImage: image)
@@ -53,37 +53,56 @@ struct ThemedGridItemView: View {
                 }
             }
             
+            // Content area - fixed height container
             VStack(alignment: .leading, spacing: 4) {
+                // Title - always present, fixed height
                 Text(item.name)
                     .font(.headline)
                     .lineLimit(1)
                     .foregroundColor(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: 20) // Fixed height for title
                 
-                if !item.itemDescription.isEmpty {
-                    Text(item.itemDescription)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                }
-                
-                // Tags
-                if !item.tags.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 2) {
-                            ForEach(item.tags.prefix(2), id: \.self) { tag in
-                                Text(tag)
-                                    .font(.caption2)
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 1)
-                                    .background(Color.blue.opacity(0.2))
-                                    .foregroundColor(.blue)
-                                    .cornerRadius(3)
-                            }
-                        }
+                // Description area - fixed height whether empty or not
+                Group {
+                    if !item.itemDescription.isEmpty {
+                        Text(item.itemDescription)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                    } else {
+                        Text("")
+                            .font(.caption)
+                            .opacity(0) // Invisible but takes up space
                     }
                 }
+                .frame(height: 28) // Fixed height for 2 lines of caption text
+                
+                // Tags area - fixed height whether empty or not
+                Group {
+                    if !item.tags.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 2) {
+                                ForEach(item.tags.prefix(2), id: \.self) { tag in
+                                    Text(tag)
+                                        .font(.caption2)
+                                        .padding(.horizontal, 4)
+                                        .padding(.vertical, 1)
+                                        .background(Color.blue.opacity(0.2))
+                                        .foregroundColor(.blue)
+                                        .cornerRadius(3)
+                                }
+                            }
+                        }
+                    } else {
+                        HStack { } // Empty HStack to maintain spacing
+                    }
+                }
+                .frame(height: 16) // Fixed height for tags area
             }
+            .frame(height: 68) // Fixed total height for content area (20 + 28 + 16 + spacing)
         }
+        .frame(height: 196) // Fixed total card height (120 + 68 + spacing)
         .padding()
         .background(AppTheme.cardBackground)
         .cornerRadius(16)
