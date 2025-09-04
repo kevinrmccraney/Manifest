@@ -1,3 +1,11 @@
+//
+//  FileAttachmentRow.swift
+//  Manifest
+//
+//  Created by Kevin McCraney on 2025-09-03.
+//
+
+
 import SwiftUI
 
 struct FileAttachmentRow: View {
@@ -23,7 +31,7 @@ struct FileAttachmentRow: View {
                             
                             Text(attachment.formattedFileSize)
                                 .font(.caption2)
-                                .foregroundColor(.tertiary)
+                                .foregroundStyle(.tertiary)
                         }
                         
                         Spacer()

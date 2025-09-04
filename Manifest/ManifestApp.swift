@@ -26,6 +26,7 @@ struct ManifestApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .background(AppTheme.secondaryBackground.ignoresSafeArea()) // Global grey background
         }
         .modelContainer(sharedModelContainer)
     }
