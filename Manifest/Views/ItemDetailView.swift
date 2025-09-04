@@ -26,9 +26,9 @@ struct ItemDetailView: View {
                         TagsDisplayView(tags: item.tags)
                     }
                     
-                    // File attachment
-                    if item.attachmentData != nil {
-                        AttachmentDisplayView(item: item)
+                    // File attachments - both new and legacy
+                    if item.hasAnyAttachment {
+                        MultiAttachmentsDisplayView(item: item)
                     }
                     
                     // Custom fields

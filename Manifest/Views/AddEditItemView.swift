@@ -22,6 +22,9 @@ struct AddEditItemView: View {
     @State private var customFields: [CustomField] = []
     @State private var tags: [String] = []
     @State private var newTag = ""
+    @State private var attachments: [FileAttachment] = []
+    
+    // Legacy support
     @State private var selectedFileURL: URL?
     @State private var attachmentDescription = ""
     @State private var showingFilePicker = false
@@ -35,6 +38,7 @@ struct AddEditItemView: View {
             _description = State(initialValue: item.itemDescription)
             _selectedImage = State(initialValue: item.thumbnailImage)
             _tags = State(initialValue: item.tags)
+            _attachments = State(initialValue: item.attachments)
             _attachmentDescription = State(initialValue: item.attachmentDescription ?? item.attachmentFilename ?? "")
             
             let fieldsDict = item.customFieldsDict
@@ -60,12 +64,9 @@ struct AddEditItemView: View {
                     showingActionSheet: $showingActionSheet
                 )
                 
-                FileAttachmentFormSection(
-                    selectedFileURL: $selectedFileURL,
-                    attachmentDescription: $attachmentDescription,
-                    showingFilePicker: $showingFilePicker,
-                    item: item
-                )
+                MultiFileAttachmentFormSection(attachments: $attachments)
+                
+                QRCodeGeneratorSection(item: item, attachments: $attachments)
                 
                 CustomFieldsFormSection(customFields: $customFields)
             }
@@ -121,27 +122,6 @@ struct AddEditItemView: View {
     private func saveItem() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedAttachmentDescription = attachmentDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Handle file attachment
-        var attachmentData: Data?
-        var attachmentFilename: String?
-        var finalAttachmentDescription: String?
-        
-        if let fileURL = selectedFileURL {
-            do {
-                attachmentData = try Data(contentsOf: fileURL)
-                attachmentFilename = fileURL.lastPathComponent
-                finalAttachmentDescription = trimmedAttachmentDescription.isEmpty ? attachmentFilename : trimmedAttachmentDescription
-            } catch {
-                print("Error reading file: \(error)")
-            }
-        } else if item?.attachmentData != nil && !attachmentDescription.isEmpty {
-            // Keep existing attachment if no new file selected
-            attachmentData = item?.attachmentData
-            attachmentFilename = item?.attachmentFilename
-            finalAttachmentDescription = trimmedAttachmentDescription
-        }
         
         if let existingItem = item {
             // Edit existing item
@@ -150,14 +130,17 @@ struct AddEditItemView: View {
             existingItem.tags = tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             existingItem.setThumbnailImage(selectedImage)
             
-            // Handle attachment
-            if selectedFileURL != nil || attachmentDescription.isEmpty {
-                // New file selected or attachment being removed
-                existingItem.setAttachment(data: attachmentData, filename: attachmentFilename, description: finalAttachmentDescription)
-            } else {
-                // Just updating description of existing attachment
-                existingItem.attachmentDescription = finalAttachmentDescription
-                existingItem.updateTimestamp()
+            // Update attachments - first remove all existing ones from the context
+            for oldAttachment in existingItem.attachments {
+                modelContext.delete(oldAttachment)
+            }
+            existingItem.attachments.removeAll()
+            
+            // Add new attachments
+            for attachment in attachments {
+                attachment.item = existingItem
+                modelContext.insert(attachment)
+                existingItem.attachments.append(attachment)
             }
             
             // Save custom fields
@@ -173,12 +156,9 @@ struct AddEditItemView: View {
             let newItem = Item(
                 name: trimmedName,
                 itemDescription: trimmedDescription,
-                thumbnailData: nil, // Will be set via setThumbnailImage
-                customFields: nil, // Will be set via setCustomFields
-                tags: tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
-                attachmentData: attachmentData,
-                attachmentFilename: attachmentFilename,
-                attachmentDescription: finalAttachmentDescription
+                thumbnailData: nil,
+                customFields: nil,
+                tags: tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             )
             
             newItem.setThumbnailImage(selectedImage)
@@ -191,6 +171,13 @@ struct AddEditItemView: View {
                            $0.value.trimmingCharacters(in: .whitespacesAndNewlines)) }
             )
             newItem.setCustomFields(fieldsDict)
+            
+            // Add attachments
+            for attachment in attachments {
+                attachment.item = newItem
+                modelContext.insert(attachment)
+                newItem.attachments.append(attachment)
+            }
             
             modelContext.insert(newItem)
         }

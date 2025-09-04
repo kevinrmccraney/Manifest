@@ -18,6 +18,9 @@ final class FileAttachment {
     var fileSize: Int64
     var createdAt: Date
     
+    // Relationship back to Item
+    var item: Item?
+    
     init(filename: String, fileDescription: String, fileData: Data, mimeType: String) {
         self.id = UUID()
         self.filename = filename

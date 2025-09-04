@@ -73,11 +73,20 @@ struct BandedItemRowView: View {
             
             Spacer()
             
-            // File attachment indicator
-            if item.attachmentData != nil {
-                Image(systemName: item.fileIcon)
-                    .foregroundColor(.secondary)
-                    .font(.caption)
+            // File attachment indicator with count
+            if item.hasAnyAttachment {
+                HStack(spacing: 2) {
+                    Image(systemName: item.fileIcon)
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                    
+                    let totalAttachments = item.attachments.count + (item.attachmentData != nil ? 1 : 0)
+                    if totalAttachments > 1 {
+                        Text("\(totalAttachments)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
         }
         .padding(.vertical, 12)

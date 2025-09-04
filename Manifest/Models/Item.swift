@@ -18,6 +18,12 @@ final class Item {
     @Attribute(.externalStorage) var thumbnailData: Data?
     var customFields: Data?
     var tags: [String]
+    
+    // Multiple file attachments relationship
+    @Relationship(deleteRule: .cascade, inverse: \FileAttachment.item)
+    var attachments: [FileAttachment] = []
+    
+    // Keep legacy attachment properties for migration compatibility
     @Attribute(.externalStorage) var attachmentData: Data?
     var attachmentFilename: String?
     var attachmentDescription: String?
@@ -34,6 +40,7 @@ final class Item {
         self.attachmentData = attachmentData
         self.attachmentFilename = attachmentFilename
         self.attachmentDescription = attachmentDescription
+        self.attachments = []
     }
     
     func updateTimestamp() {
@@ -81,6 +88,12 @@ final class Item {
         updateTimestamp()
     }
     
+    // Legacy attachment support - check both new and old systems
+    var hasAnyAttachment: Bool {
+        return !attachments.isEmpty || attachmentData != nil
+    }
+    
+    // Legacy methods for backward compatibility
     func setAttachment(data: Data?, filename: String?, description: String?) {
         attachmentData = data
         attachmentFilename = filename
@@ -94,6 +107,12 @@ final class Item {
     }
     
     var fileIcon: String {
+        // Check new attachments first
+        if !attachments.isEmpty {
+            return attachments.first?.fileIcon ?? "doc.fill"
+        }
+        
+        // Fall back to legacy attachment
         switch fileExtension {
         case "pdf": return "doc.fill"
         case "doc", "docx": return "doc.text.fill"
@@ -106,5 +125,17 @@ final class Item {
         case "zip", "rar": return "archivebox.fill"
         default: return "doc.fill"
         }
+    }
+    
+    // Add attachment method
+    func addAttachment(_ attachment: FileAttachment) {
+        attachments.append(attachment)
+        updateTimestamp()
+    }
+    
+    // Remove attachment method
+    func removeAttachment(_ attachment: FileAttachment) {
+        attachments.removeAll { $0.id == attachment.id }
+        updateTimestamp()
     }
 }

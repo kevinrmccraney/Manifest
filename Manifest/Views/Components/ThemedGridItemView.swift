@@ -32,15 +32,24 @@ struct ThemedGridItemView: View {
                         )
                 }
                 
-                // File attachment indicator
-                if item.attachmentData != nil {
-                    Image(systemName: item.fileIcon)
-                        .foregroundColor(.white)
-                        .font(.caption)
-                        .padding(4)
-                        .background(Color.black.opacity(0.6))
-                        .cornerRadius(4)
-                        .padding(8)
+                // File attachment indicator with count
+                if item.hasAnyAttachment {
+                    HStack(spacing: 2) {
+                        Image(systemName: item.fileIcon)
+                            .foregroundColor(.white)
+                            .font(.caption)
+                        
+                        let totalAttachments = item.attachments.count + (item.attachmentData != nil ? 1 : 0)
+                        if totalAttachments > 1 {
+                            Text("\(totalAttachments)")
+                                .font(.caption2)
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .padding(4)
+                    .background(Color.black.opacity(0.6))
+                    .cornerRadius(4)
+                    .padding(8)
                 }
             }
             
