@@ -19,114 +19,101 @@ struct MultiAttachmentsDisplayView: View {
             Text("Attachments (\(totalAttachmentCount))")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
             
             // New multi-file attachments
             if !item.attachments.isEmpty {
                 ForEach(item.attachments, id: \.id) { attachment in
-                    HStack {
-                        Button(action: {
-                            previewAttachment = attachment
-                            showingPreview = true
-                        }) {
-                            HStack {
-                                Image(systemName: attachment.fileIcon)
-                                    .foregroundColor(.blue)
-                                    .font(.title2)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Image(systemName: attachment.fileIcon)
+                                .foregroundStyle(.blue)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                // Make the entire description area tappable for preview
+                                HStack {
                                     Text(attachment.fileDescription)
                                         .font(.body)
                                         .lineLimit(1)
-                                        .foregroundColor(.primary)
+                                        .foregroundStyle(.primary)
                                     
-                                    Text(attachment.formattedFileSize)
+                                    Text("Preview")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundStyle(.clear) // Invisible text
+                                    
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    previewAttachment = attachment
+                                    showingPreview = true
                                 }
                                 
-                                Spacer()
-                                
-                                Image(systemName: "eye.fill")
+                                Text(attachment.formattedFileSize)
                                     .font(.caption)
-                                    .foregroundColor(.blue)
+                                    .foregroundStyle(.secondary)
                             }
+                            
+                            Spacer()
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        // Add download button
-                        Button(action: {
-                            downloadFile(attachment)
-                        }) {
-                            Image(systemName: "square.and.arrow.down")
-                                .font(.caption)
-                                .foregroundColor(.green)
-                        }
-                        .padding(.horizontal, 8)
                     }
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(8)
+                    .contextMenu {
+                        Button("Download") {
+                            downloadFile(attachment)
+                        }
+                    }
                 }
             }
             
             // Legacy attachment support
             if item.attachmentData != nil {
-                HStack {
-                    Button(action: {
-                        // Create temporary FileAttachment for preview
-                        if let data = item.attachmentData,
-                           let filename = item.attachmentFilename {
-                            let tempAttachment = FileAttachment(
-                                filename: filename,
-                                fileDescription: item.attachmentDescription ?? filename,
-                                fileData: data,
-                                mimeType: "application/octet-stream"
-                            )
-                            previewAttachment = tempAttachment
-                            showingPreview = true
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: item.fileIcon)
-                                .foregroundColor(.blue)
-                                .font(.title2)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Image(systemName: item.fileIcon)
+                            .foregroundStyle(.blue)
+                            .font(.title2)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            // Make the entire description area tappable for preview
+                            HStack {
                                 Text(item.attachmentDescription ?? item.attachmentFilename ?? "Unknown file")
                                     .font(.body)
                                     .lineLimit(1)
-                                    .foregroundColor(.primary)
+                                    .foregroundStyle(.primary)
                                 
-                                if let data = item.attachmentData {
-                                    Text("\(data.count.formatted(.byteCount(style: .file)))")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
+                                Text("Preview")
+                                    .font(.caption)
+                                    .foregroundStyle(.clear) // Invisible text
+                                
+                                Spacer()
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                previewLegacyAttachment()
                             }
                             
-                            Spacer()
-                            
-                            Image(systemName: "eye.fill")
-                                .font(.caption)
-                                .foregroundColor(.blue)
+                            if let data = item.attachmentData {
+                                Text("\(data.count.formatted(.byteCount(style: .file)))")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
+                        
+                        Spacer()
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    // Add download button for legacy attachment
-                    Button(action: {
-                        downloadLegacyFile()
-                    }) {
-                        Image(systemName: "square.and.arrow.down")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                    }
-                    .padding(.horizontal, 8)
                 }
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
+                .contextMenu {
+                    Button("Download") {
+                        downloadLegacyFile()
+                    }
+                }
             }
         }
         .sheet(isPresented: $showingPreview) {
@@ -138,6 +125,20 @@ struct MultiAttachmentsDisplayView: View {
             if let url = shareURL {
                 ActivityViewController(activityItems: [url])
             }
+        }
+    }
+    
+    private func previewLegacyAttachment() {
+        if let data = item.attachmentData,
+           let filename = item.attachmentFilename {
+            let tempAttachment = FileAttachment(
+                filename: filename,
+                fileDescription: item.attachmentDescription ?? filename,
+                fileData: data,
+                mimeType: "application/octet-stream"
+            )
+            previewAttachment = tempAttachment
+            showingPreview = true
         }
     }
     

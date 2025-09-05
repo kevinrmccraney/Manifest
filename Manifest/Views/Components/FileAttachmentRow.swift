@@ -22,45 +22,46 @@ struct FileAttachmentRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Button(action: onPreview) {
+                Image(systemName: attachment.fileIcon)
+                    .foregroundStyle(.blue)
+                    .font(.title2)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    // Make the entire description area tappable for preview with invisible "Preview" text
                     HStack {
-                        Image(systemName: attachment.fileIcon)
-                            .foregroundColor(.blue)
-                            .font(.title2)
+                        Text(attachment.filename)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(attachment.filename)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
-                            
-                            Text(attachment.formattedFileSize)
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                        }
+                        Text("Preview")
+                            .font(.caption)
+                            .foregroundStyle(.clear) // Invisible text
                         
                         Spacer()
-                        
-                        Image(systemName: "eye.fill")
-                            .font(.caption)
-                            .foregroundColor(.blue)
                     }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        onPreview()
+                    }
+                    
+                    Text(attachment.formattedFileSize)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
                 }
-                .buttonStyle(PlainButtonStyle())
                 
-                // Add download button
-                Button(action: onDownload) {
-                    Image(systemName: "square.and.arrow.down")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                }
-                .padding(.horizontal, 8)
+                Spacer()
                 
                 Button("Delete") {
                     onDelete()
                 }
-                .foregroundColor(.red)
+                .foregroundStyle(.red)
                 .font(.caption)
+            }
+            .contextMenu {
+                Button("Download") {
+                    onDownload()
+                }
             }
             
             HStack {
@@ -73,7 +74,7 @@ struct FileAttachmentRow: View {
                 } else {
                     Text(attachment.fileDescription)
                         .font(.caption)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                         .onTapGesture {
                             if !isQRCode {
                                 isEditingDescription = true
@@ -87,7 +88,7 @@ struct FileAttachmentRow: View {
                             isEditingDescription = true
                         }
                         .font(.caption2)
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                     }
                 }
             }
