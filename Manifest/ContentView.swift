@@ -26,6 +26,9 @@ struct ContentView: View {
     
     // Use settings for initial view mode
     @State private var showingGridView = AppSettings.shared.defaultViewMode == .grid
+    @State private var enabledNFCScanning = AppSettings.shared.enableNFC
+    @State private var enabledQRScanning = AppSettings.shared.enableQR
+    @State private var showViewToggle = AppSettings.shared.showViewToggle
     
     // Filter items based on archive status
     var activeItems: [Item] {
@@ -109,6 +112,13 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
+                            
+                            Button("Back to All Items") {
+                                withAnimation {
+                                    showArchivedItems = false
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(AppTheme.secondaryBackground)
@@ -146,21 +156,27 @@ struct ContentView: View {
                     
                     if !currentItems.isEmpty {
                         
-                        Button(action: toggleViewMode) {
-                            Image(systemName: showingGridView ? "list.bullet" : "square.grid.2x2")
+                        if showViewToggle{
+                            
+                            Button(action: toggleViewMode) {
+                                Image(systemName: showingGridView ? "list.bullet" : "square.grid.2x2")
+                            }
                         }
                     }
                     
                 }
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    // QR Scanner button
-                    Button(action: { showingQRScanner = true }) {
-                        Image(systemName: "qrcode.viewfinder")
+                    
+                    if enabledNFCScanning {
+                        Button(action: { showingNFCScanner = true }) {
+                            Image(systemName: "wave.3.right")
+                        }
                     }
                     
-                    // NFC Scanner button
-                    Button(action: { showingNFCScanner = true }) {
-                        Image(systemName: "wave.3.right")
+                    if enabledQRScanning {
+                        Button(action: { showingQRScanner = true }) {
+                            Image(systemName: "qrcode.viewfinder")
+                        }
                     }
                     
                     if !currentItems.isEmpty {

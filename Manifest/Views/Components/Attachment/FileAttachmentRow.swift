@@ -13,6 +13,7 @@ struct FileAttachmentRow: View {
     let onDownload: () -> Void
     let onDelete: () -> Void
     @State private var isEditingDescription = false
+    @State private var showingDownloadMenu = false
     
     // Check if this is a QR code file
     private var isQRCode: Bool {
@@ -52,15 +53,22 @@ struct FileAttachmentRow: View {
                 
                 Spacer()
                 
-                Button("Delete") {
-                    onDelete()
+                // Chevron button for download menu
+                Button(action: {
+                    showingDownloadMenu = true
+                }) {
+                    Image(systemName: "chevron.down")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
                 }
-                .foregroundStyle(.red)
-                .font(.caption)
-            }
-            .contextMenu {
-                Button("Download") {
-                    onDownload()
+                .confirmationDialog("File Options", isPresented: $showingDownloadMenu) {
+                    Button("Download") {
+                        onDownload()
+                    }
+                    Button("Delete", role: .destructive) {
+                        onDelete()
+                    }
+                    Button("Cancel", role: .cancel) { }
                 }
             }
             

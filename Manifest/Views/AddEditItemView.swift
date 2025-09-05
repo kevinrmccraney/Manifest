@@ -19,11 +19,13 @@ struct AddEditItemView: View {
     @State private var showingImagePicker = false
     @State private var showingCamera = false
     @State private var showingActionSheet = false
-    @State private var customFields: [CustomField] = []
     @State private var tags: [String] = []
     @State private var newTag = ""
     @State private var attachments: [FileAttachment] = []
     @State private var itemID: UUID = UUID() // Create UUID immediately
+    
+    @State private var enabledNFCScanning = AppSettings.shared.enableNFC
+    @State private var enabledQRScanning = AppSettings.shared.enableQR
     
     // NFC related state
     @State private var showingNFCWriter = false
@@ -45,9 +47,6 @@ struct AddEditItemView: View {
             _attachments = State(initialValue: item.attachments)
             _attachmentDescription = State(initialValue: item.attachmentDescription ?? item.attachmentFilename ?? "")
             _itemID = State(initialValue: item.id) // Use existing ID for editing
-            
-            let fieldsDict = item.customFieldsDict
-            _customFields = State(initialValue: fieldsDict.map { CustomField(key: $0.key, value: $0.value) })
         }
         // For new items, itemID is already initialized with UUID()
     }
@@ -72,33 +71,39 @@ struct AddEditItemView: View {
                 
                 MultiFileAttachmentFormSection(attachments: $attachments)
                 
-                // Physical Storage Section (combines QR Code and NFC)
-                Section(header: Text("Physical Storage")) {
-                    // QR Code Generation
-                    QRCodeGeneratorContent(
-                        item: item,
-                        itemName: name.isEmpty ? "Untitled Item" : name,
-                        itemID: itemID,
-                        attachments: $attachments
-                    )
-                    
-                    // NFC Tag Creation
-                    Button(action: {
-                        showingNFCWriter = true
-                    }) {
-                        HStack {
-                            Image(systemName: "wave.3.right.circle.fill")
-                                .foregroundStyle(.blue)
-                            Text("Create NFC Tag")
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.tertiary)
+                if enabledQRScanning || enabledNFCScanning{
+
+                    // Physical Storage Section (combines QR Code and NFC)
+                    Section(header: Text("Physical Storage")) {
+                        
+                        if enabledQRScanning{
+                            QRCodeGeneratorContent(
+                                item: item,
+                                itemName: name.isEmpty ? "Untitled Item" : name,
+                                itemID: itemID,
+                                attachments: $attachments
+                            )
+
+                        }
+                        
+                        if enabledNFCScanning{
+                            // NFC Tag Creation
+                            Button(action: {
+                                showingNFCWriter = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "wave.3.right.circle.fill")
+                                        .foregroundStyle(.blue)
+                                    Text("Create NFC Tag")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         }
                     }
-                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
-                
-                CustomFieldsFormSection(customFields: $customFields)
             }
             .navigationTitle(item == nil ? "Add Item" : "Edit Item")
             .navigationBarTitleDisplayMode(.inline)
@@ -183,15 +188,6 @@ struct AddEditItemView: View {
                 modelContext.insert(attachment)
                 existingItem.attachments.append(attachment)
             }
-            
-            // Save custom fields
-            let fieldsDict = Dictionary(uniqueKeysWithValues:
-                customFields
-                    .filter { !$0.key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                    .map { ($0.key.trimmingCharacters(in: .whitespacesAndNewlines),
-                           $0.value.trimmingCharacters(in: .whitespacesAndNewlines)) }
-            )
-            existingItem.setCustomFields(fieldsDict)
         } else {
             // Create new item with the pre-generated UUID
             let newItem = Item(
@@ -206,15 +202,6 @@ struct AddEditItemView: View {
             newItem.id = itemID
             
             newItem.setThumbnailImage(selectedImage)
-            
-            // Save custom fields
-            let fieldsDict = Dictionary(uniqueKeysWithValues:
-                customFields
-                    .filter { !$0.key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                    .map { ($0.key.trimmingCharacters(in: .whitespacesAndNewlines),
-                           $0.value.trimmingCharacters(in: .whitespacesAndNewlines)) }
-            )
-            newItem.setCustomFields(fieldsDict)
             
             // Add attachments
             for attachment in attachments {

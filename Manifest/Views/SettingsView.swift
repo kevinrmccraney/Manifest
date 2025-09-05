@@ -14,29 +14,23 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             Form {
+                Section(header: Text("Functionality")) {
+
+                    SimpleToggle(
+                        isOn: $settings.debugMode,
+                        icon: "wrench",
+                        labelText: "Debug Mode"
+                    )
+                    
+                }
                 // Display Settings Section
                 Section(header: Text("Appearance")) {
-                    // Default View Mode Setting
-                    HStack {
-                        Image(systemName: "eye")
-                            .foregroundColor(.blue)
-                            .frame(width: 24, height: 24)
-                        
-                        Text("Default View")
-                        
-                        Spacer()
-                        
-                        Picker("", selection: $settings.defaultViewMode) {
-                            ForEach(ViewMode.allCases, id: \.self) { mode in
-                                HStack {
-                                    Image(systemName: mode.icon)
-                                    Text(mode.displayName)
-                                }
-                                .tag(mode)
-                            }
-                        }
-                        .pickerStyle(MenuPickerStyle())
-                    }
+
+                    SimpleToggle(
+                        isOn: $settings.showViewToggle,
+                        icon: "grid",
+                        labelText: "Show Grid/List Toggle"
+                    )
                     
                     // Show Attachment Icons Setting
                     SimpleToggle(
@@ -57,28 +51,22 @@ struct SettingsView: View {
                         labelText: "Show Description outside Detailed Item View"
                     )
                     
-                    // Show Grid/List Toggle
-                    SimpleToggle(
-                        isOn: $settings.showAttachmentIcons,
-                        icon: "grid",
-                        labelText: "Show Grid/List Toggle"
-                    )
                     
                 }
                 
-                Section(header: Text("Functionality")) {
+                Section(header: Text("Scanning")) {
 
                     
                     // Show NFC Toggle
                     SimpleToggle(
-                        isOn: $settings.showAttachmentIcons,
+                        isOn: $settings.enableNFC,
                         icon: "wave.3.right",
                         labelText: "Enable NFC"
                     )
                     
                     // Show QR Toggle
                     SimpleToggle(
-                        isOn: $settings.showAttachmentIcons,
+                        isOn: $settings.enableQR,
                         icon: "qrcode",
                         labelText: "Enable QR"
                     )

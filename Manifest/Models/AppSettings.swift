@@ -39,8 +39,66 @@ class AppSettings {
         }
     }
     
+    var enableNFC: Bool {
+        get {
+            // Default to false if not set
+            if UserDefaults.standard.object(forKey: "enableNFC") == nil {
+                return false
+            }
+            return UserDefaults.standard.bool(forKey: "enableNFC")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "enableNFC")
+        }
+    }
+    
+    var enableQR: Bool {
+        get {
+            // Default to false if not set
+            if UserDefaults.standard.object(forKey: "enableQR") == nil {
+                return false
+            }
+            return UserDefaults.standard.bool(forKey: "enableQR")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "enableQR")
+        }
+    }
+    
+    var debugMode: Bool {
+        get {
+            // Default to false if not set
+            if UserDefaults.standard.object(forKey: "debugMode") == nil {
+                return false
+            }
+            return UserDefaults.standard.bool(forKey: "debugMode")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "debugMode")
+        }
+    }
+    
+    
+    var showViewToggle: Bool {
+        get {
+            // Default to false if not set
+            if UserDefaults.standard.object(forKey: "showViewToggle") == nil {
+                return false
+            }
+            return UserDefaults.standard.bool(forKey: "showViewToggle")
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "showViewToggle")
+        }
+    }
+
+
+    
+    
+    
     private init() {}
 }
+
 
 enum ViewMode: String, CaseIterable {
     case list = "list"

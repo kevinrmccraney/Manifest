@@ -13,6 +13,8 @@ struct MultiAttachmentsDisplayView: View {
     @State private var showingPreview = false
     @State private var showingShareSheet = false
     @State private var shareURL: URL?
+    @State private var showingDownloadMenu = false
+    @State private var selectedAttachment: FileAttachment?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -56,16 +58,21 @@ struct MultiAttachmentsDisplayView: View {
                             }
                             
                             Spacer()
+                            
+                            // Chevron button for download menu
+                            Button(action: {
+                                selectedAttachment = attachment
+                                showingDownloadMenu = true
+                            }) {
+                                Image(systemName: "chevron.down")
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                            }
                         }
                     }
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(8)
-                    .contextMenu {
-                        Button("Download") {
-                            downloadFile(attachment)
-                        }
-                    }
                 }
             }
             
@@ -104,16 +111,20 @@ struct MultiAttachmentsDisplayView: View {
                         }
                         
                         Spacer()
+                        
+                        // Chevron button for legacy download menu
+                        Button(action: {
+                            downloadLegacyFile()
+                        }) {
+                            Image(systemName: "chevron.down")
+                                .foregroundStyle(.secondary)
+                                .font(.caption)
+                        }
                     }
                 }
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(8)
-                .contextMenu {
-                    Button("Download") {
-                        downloadLegacyFile()
-                    }
-                }
             }
         }
         .sheet(isPresented: $showingPreview) {
@@ -125,6 +136,14 @@ struct MultiAttachmentsDisplayView: View {
             if let url = shareURL {
                 ActivityViewController(activityItems: [url])
             }
+        }
+        .confirmationDialog("File Options", isPresented: $showingDownloadMenu) {
+            Button("Download") {
+                if let attachment = selectedAttachment {
+                    downloadFile(attachment)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
         }
     }
     

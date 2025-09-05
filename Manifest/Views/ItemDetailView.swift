@@ -13,6 +13,8 @@ struct ItemDetailView: View {
     @State private var showingActionSheet = false
     @Environment(\.dismiss) private var dismiss
     
+    @State private var debugMode = AppSettings.shared.debugMode
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -37,8 +39,7 @@ struct ItemDetailView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     // Title and description
                     TitleDescriptionSection(item: item)
-                    
-                    // File attachments - both new and legacy
+                                        
                     if item.hasAnyAttachment {
                         MultiAttachmentsDisplayView(item: item)
                     }
@@ -48,13 +49,14 @@ struct ItemDetailView: View {
                         TagsDisplayView(tags: item.tags)
                     }
                     
-                    // Custom fields
-                    if !item.customFieldsDict.isEmpty {
-                        CustomFieldsDisplayView(customFields: item.customFieldsDict)
-                    }
-                    
                     // Timestamps
-                    TimestampSection(item: item)
+                    TimestampSection(item: item, debugMode: debugMode)
+                    
+                    if debugMode {
+                        Text("UUID: " + item.id.uuidString)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
                 }
                 
                 Spacer()
@@ -64,9 +66,6 @@ struct ItemDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
-                Button("Edit") {
-                    showingEditSheet = true
-                }
                 
                 Button(action: {
                     showingActionSheet = true
@@ -79,6 +78,12 @@ struct ItemDetailView: View {
             AddEditItemView(item: item)
         }
         .confirmationDialog("Item Actions", isPresented: $showingActionSheet) {
+            // Only show Edit button if item is not archived
+            if !item.isArchived {
+                Button("Edit") {
+                    showingEditSheet = true
+                }
+            }
             if item.isArchived {
                 Button("Unarchive") {
                     withAnimation {

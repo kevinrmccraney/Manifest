@@ -29,7 +29,7 @@ struct SearchBar: View {
                         text = ""
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(.secondary)
                             .font(.system(size: 16))
                     }
                     .padding(.trailing, 8)
