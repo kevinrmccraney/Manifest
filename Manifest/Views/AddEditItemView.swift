@@ -25,6 +25,9 @@ struct AddEditItemView: View {
     @State private var attachments: [FileAttachment] = []
     @State private var itemID: UUID = UUID() // Create UUID immediately
     
+    // NFC related state
+    @State private var showingNFCWriter = false
+    
     // Legacy support
     @State private var selectedFileURL: URL?
     @State private var attachmentDescription = ""
@@ -69,12 +72,31 @@ struct AddEditItemView: View {
                 
                 MultiFileAttachmentFormSection(attachments: $attachments)
                 
-                QRCodeGeneratorSection(
-                    item: item,
-                    itemName: name.isEmpty ? "Untitled Item" : name,
-                    itemID: itemID,
-                    attachments: $attachments
-                )
+                // Physical Storage Section (combines QR Code and NFC)
+                Section(header: Text("Physical Storage")) {
+                    // QR Code Generation
+                    QRCodeGeneratorContent(
+                        item: item,
+                        itemName: name.isEmpty ? "Untitled Item" : name,
+                        itemID: itemID,
+                        attachments: $attachments
+                    )
+                    
+                    // NFC Tag Creation
+                    Button(action: {
+                        showingNFCWriter = true
+                    }) {
+                        HStack {
+                            Image(systemName: "wave.3.right.circle.fill")
+                                .foregroundStyle(.blue)
+                            Text("Create NFC Tag")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
                 
                 CustomFieldsFormSection(customFields: $customFields)
             }
@@ -108,6 +130,12 @@ struct AddEditItemView: View {
             }
             .sheet(isPresented: $showingCamera) {
                 ImagePicker(selectedImage: $selectedImage, sourceType: .camera)
+            }
+            .sheet(isPresented: $showingNFCWriter) {
+                NFCWriterView(
+                    itemID: itemID,
+                    itemName: name.isEmpty ? "Untitled Item" : name
+                )
             }
             .fileImporter(
                 isPresented: $showingFilePicker,

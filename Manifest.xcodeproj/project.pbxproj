@@ -29,9 +29,22 @@
 		E89A16292E688C0E0065BE73 /* ManifestUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ManifestUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		E856FCB12E6A65C300DE0FA2 /* Exceptions for "Manifest" folder in "Copy Bundle Resources" phase from "Manifest" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = E89A160E2E688C0C0065BE73 /* Resources */;
+			membershipExceptions = (
+				Manifest.entitlements,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E89A16122E688C0C0065BE73 /* Manifest */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E856FCB12E6A65C300DE0FA2 /* Exceptions for "Manifest" folder in "Copy Bundle Resources" phase from "Manifest" target */,
+			);
 			path = Manifest;
 			sourceTree = "<group>";
 		};

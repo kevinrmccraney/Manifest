@@ -30,5 +30,6 @@ struct ManifestApp: App {
                 .background(AppTheme.secondaryBackground.ignoresSafeArea()) // Global grey background
         }
         .modelContainer(sharedModelContainer)
+        .handlesExternalEvents(matching: ["manifest"]) // Handle manifest:// URLs
     }
 }
