@@ -11,6 +11,7 @@ import SwiftData
 struct BandedItemListView: View {
     let items: [Item]
     let showAttachmentIcons: Bool
+    let isShowingArchived: Bool
     @Environment(\.modelContext) private var modelContext
     @State private var itemToDelete: Item?
     @State private var showingDeleteAlert = false
@@ -28,9 +29,48 @@ struct BandedItemListView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     .contextMenu {
+                        if isShowingArchived {
+                            Button("Unarchive") {
+                                withAnimation {
+                                    item.unarchive()
+                                }
+                            }
+                        } else {
+                            Button("Archive") {
+                                withAnimation {
+                                    item.archive()
+                                }
+                            }
+                        }
+                        
                         Button("Delete", role: .destructive) {
                             itemToDelete = item
                             showingDeleteAlert = true
+                        }
+                    }
+                    .swipeActions(edge: .trailing) {
+                        // Delete action (secondary)
+                        Button("Delete", role: .destructive) {
+                            itemToDelete = item
+                            showingDeleteAlert = true
+                        }
+                    }
+                    .swipeActions(edge: .trailing) {
+                        // Archive action (primary)
+                        if isShowingArchived {
+                            Button("Unarchive") {
+                                withAnimation {
+                                    item.unarchive()
+                                }
+                            }
+                            .tint(.blue)
+                        } else {
+                            Button("Archive") {
+                                withAnimation {
+                                    item.archive()
+                                }
+                            }
+                            .tint(.orange)
                         }
                     }
                 }
@@ -45,7 +85,7 @@ struct BandedItemListView: View {
                 }
             }
         } message: {
-            Text("Are you sure you want to delete this item? This action cannot be undone.")
+            Text("Are you sure you want to permanently delete this item? This action cannot be undone.")
         }
     }
     

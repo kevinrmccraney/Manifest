@@ -16,19 +16,35 @@ struct ContentView: View {
     @State private var showingSearch = false
     @State private var showingSettings = false
     @State private var showingNFCScanner = false
+    @State private var showingQRScanner = false
     @State private var searchText = ""
     @State private var settings = AppSettings.shared
     @State private var showingNFCItemNotFound = false
+    @State private var showingQRItemNotFound = false
     @State private var navigationCoordinator = NavigationCoordinator.shared
+    @State private var showArchivedItems = false
     
     // Use settings for initial view mode
     @State private var showingGridView = AppSettings.shared.defaultViewMode == .grid
     
+    // Filter items based on archive status
+    var activeItems: [Item] {
+        allItems.filter { !$0.isArchived }
+    }
+    
+    var archivedItems: [Item] {
+        allItems.filter { $0.isArchived }
+    }
+    
+    var currentItems: [Item] {
+        showArchivedItems ? archivedItems : activeItems
+    }
+    
     var filteredItems: [Item] {
         if searchText.isEmpty {
-            return allItems
+            return currentItems
         } else {
-            return allItems.filter { item in
+            return currentItems.filter { item in
                 item.name.localizedCaseInsensitiveContains(searchText) ||
                 item.itemDescription.localizedCaseInsensitiveContains(searchText) ||
                 item.tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
@@ -39,6 +55,32 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                // Archive toggle section
+                if !archivedItems.isEmpty {
+                    HStack {
+                        Button(action: {
+                            withAnimation {
+                                showArchivedItems.toggle()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: showArchivedItems ? "tray.full" : "tray")
+                                Text(showArchivedItems ? "Archived Items (\(archivedItems.count))" : "Show Archived (\(archivedItems.count))")
+                                    .font(.caption)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .rotationEffect(.degrees(showArchivedItems ? 90 : 0))
+                                    .animation(.easeInOut(duration: 0.2), value: showArchivedItems)
+                            }
+                        }
+                        .foregroundStyle(showArchivedItems ? .orange : .secondary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(AppTheme.primaryBackground)
+                    }
+                    .background(AppTheme.primaryBackground)
+                }
+                
                 if showingSearch {
                     SearchBar(text: $searchText)
                         .padding(.horizontal, 16)
@@ -51,22 +93,50 @@ struct ContentView: View {
                     SearchEmptyView(searchText: searchText)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(AppTheme.secondaryBackground)
-                } else if allItems.isEmpty {
-                    EmptyStateView(showingAddItem: $showingAddItem)
+                } else if currentItems.isEmpty {
+                    if showArchivedItems {
+                        // Empty archived state
+                        VStack(spacing: 20) {
+                            Image(systemName: "tray")
+                                .font(.system(size: 60))
+                                .foregroundStyle(.gray)
+                            
+                            Text("No Archived Items")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                            
+                            Text("Items you archive will appear here")
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(AppTheme.secondaryBackground)
+                    } else {
+                        EmptyStateView(showingAddItem: $showingAddItem)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(AppTheme.secondaryBackground)
+                    }
                 } else {
                     if showingGridView {
-                        GridView(items: filteredItems, showAttachmentIcons: settings.showAttachmentIcons)
-                            .background(AppTheme.secondaryBackground)
+                        GridView(
+                            items: filteredItems,
+                            showAttachmentIcons: settings.showAttachmentIcons,
+                            isShowingArchived: showArchivedItems
+                        )
+                        .background(AppTheme.secondaryBackground)
                     } else {
-                        BandedItemListView(items: filteredItems, showAttachmentIcons: settings.showAttachmentIcons)
-                            .background(AppTheme.secondaryBackground)
+                        BandedItemListView(
+                            items: filteredItems,
+                            showAttachmentIcons: settings.showAttachmentIcons,
+                            isShowingArchived: showArchivedItems
+                        )
+                        .background(AppTheme.secondaryBackground)
                     }
                 }
             }
             .background(AppTheme.primaryBackground) // Top area white/black
-            .navigationTitle("Manifest")
+            .navigationTitle(showArchivedItems ? "Archived Items" : "Items")
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                     
@@ -74,7 +144,7 @@ struct ContentView: View {
                         Image(systemName: "gearshape")
                     }
                     
-                    if !allItems.isEmpty {
+                    if !currentItems.isEmpty {
                         
                         Button(action: toggleViewMode) {
                             Image(systemName: showingGridView ? "list.bullet" : "square.grid.2x2")
@@ -83,21 +153,27 @@ struct ContentView: View {
                     
                 }
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    // QR Scanner button
+                    Button(action: { showingQRScanner = true }) {
+                        Image(systemName: "qrcode.viewfinder")
+                    }
+                    
                     // NFC Scanner button
                     Button(action: { showingNFCScanner = true }) {
                         Image(systemName: "wave.3.right")
                     }
                     
-                    if !allItems.isEmpty {
+                    if !currentItems.isEmpty {
                         Button(action: toggleSearch) {
                             Image(systemName: "magnifyingglass")
                         }
-                        
                     }
                     
-                    
-                    Button(action: { showingAddItem = true }) {
-                        Image(systemName: "plus")
+                    // Only show add button when not viewing archived items
+                    if !showArchivedItems {
+                        Button(action: { showingAddItem = true }) {
+                            Image(systemName: "plus")
+                        }
                     }
                 }
             }
@@ -112,10 +188,20 @@ struct ContentView: View {
                     handleNFCScan(itemID: itemID)
                 }
             }
+            .sheet(isPresented: $showingQRScanner) {
+                QRScannerView { itemID in
+                    handleQRScan(itemID: itemID)
+                }
+            }
             .alert("Item Not Found", isPresented: $showingNFCItemNotFound) {
                 Button("OK") { }
             } message: {
                 Text("The scanned NFC tag contains an item ID that doesn't exist in your Manifest. The item may have been deleted or belongs to a different user.")
+            }
+            .alert("Item Not Found", isPresented: $showingQRItemNotFound) {
+                Button("OK") { }
+            } message: {
+                Text("The scanned QR code contains an item ID that doesn't exist in your Manifest. The item may have been deleted or belongs to a different user.")
             }
             .sheet(isPresented: $navigationCoordinator.showingItemDetail) {
                 if let item = navigationCoordinator.selectedItem {
@@ -154,11 +240,20 @@ struct ContentView: View {
     }
     
     private func handleNFCScan(itemID: UUID) {
-        // Find the item with the scanned ID
+        // Find the item with the scanned ID (including archived items)
         if let item = allItems.first(where: { $0.id == itemID }) {
             navigationCoordinator.navigateToItem(item)
         } else {
             showingNFCItemNotFound = true
+        }
+    }
+    
+    private func handleQRScan(itemID: UUID) {
+        // Find the item with the scanned ID (including archived items)
+        if let item = allItems.first(where: { $0.id == itemID }) {
+            navigationCoordinator.navigateToItem(item)
+        } else {
+            showingQRItemNotFound = true
         }
     }
     
@@ -172,7 +267,7 @@ struct ContentView: View {
                 let uuidString = pathComponents[1]
                 if let itemID = UUID(uuidString: uuidString) {
                     print("Parsed item ID from deep link: \(itemID)")
-                    handleNFCScan(itemID: itemID)
+                    handleNFCScan(itemID: itemID) // Reuse the same logic
                 } else {
                     print("Invalid UUID in deep link: \(uuidString)")
                 }

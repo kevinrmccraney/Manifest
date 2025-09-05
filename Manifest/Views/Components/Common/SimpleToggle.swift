@@ -14,9 +14,10 @@ struct SimpleToggle: View {
     
     var body: some View {
         HStack {
-            Image(systemName: icon)
+            Image(systemName: icon.isEmpty ? "circle" : icon)
                 .foregroundColor(.blue)
                 .frame(width: 24, height: 24)
+                .opacity(icon.isEmpty ? 0 : 1)
             
             Text(labelText)
             

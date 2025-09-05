@@ -18,6 +18,7 @@ final class Item {
     @Attribute(.externalStorage) var thumbnailData: Data?
     var customFields: Data?
     var tags: [String]
+    var isArchived: Bool = false // New archive flag
     
     // Multiple file attachments relationship
     @Relationship(deleteRule: .cascade, inverse: \FileAttachment.item)
@@ -28,7 +29,7 @@ final class Item {
     var attachmentFilename: String?
     var attachmentDescription: String?
     
-    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], attachmentData: Data? = nil, attachmentFilename: String? = nil, attachmentDescription: String? = nil) {
+    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], attachmentData: Data? = nil, attachmentFilename: String? = nil, attachmentDescription: String? = nil, isArchived: Bool = false) {
         self.id = UUID()
         self.name = name
         self.itemDescription = itemDescription
@@ -41,10 +42,22 @@ final class Item {
         self.attachmentFilename = attachmentFilename
         self.attachmentDescription = attachmentDescription
         self.attachments = []
+        self.isArchived = isArchived
     }
     
     func updateTimestamp() {
         self.updatedAt = Date()
+    }
+    
+    // Archive/Unarchive methods
+    func archive() {
+        isArchived = true
+        updateTimestamp()
+    }
+    
+    func unarchive() {
+        isArchived = false
+        updateTimestamp()
     }
     
     // MARK: - Computed Properties

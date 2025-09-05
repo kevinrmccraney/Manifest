@@ -15,7 +15,7 @@ struct SettingsView: View {
         NavigationView {
             Form {
                 // Display Settings Section
-                Section(header: Text("Display")) {
+                Section(header: Text("Appearance")) {
                     // Default View Mode Setting
                     HStack {
                         Image(systemName: "eye")
@@ -43,6 +43,18 @@ struct SettingsView: View {
                         isOn: $settings.showAttachmentIcons,
                         icon: "paperclip",
                         labelText: "Show Attachment Icons"
+                    )
+                    
+                    SimpleToggle(
+                        isOn: $settings.showAttachmentIcons,
+                        icon: "",
+                        labelText: "Show Tags outside Detailed Item View"
+                    )
+                    
+                    SimpleToggle(
+                        isOn: $settings.showAttachmentIcons,
+                        icon: "",
+                        labelText: "Show Description outside Detailed Item View"
                     )
                     
                     // Show Grid/List Toggle

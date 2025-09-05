@@ -58,8 +58,9 @@ struct QRCodeGeneratorContent: View {
         isGenerating = true
         
         DispatchQueue.global(qos: .userInitiated).async {
-            // Generate QR code image
-            let qrImage = generateQRCodeImage(for: itemID.uuidString)
+            // Generate QR code image using the same URL format as NFC
+            let urlString = "manifest://item/\(itemID.uuidString)"
+            let qrImage = generateQRCodeImage(for: urlString)
             
             // Convert to PNG data
             guard let pngData = qrImage.pngData() else {
