@@ -26,7 +26,7 @@ struct SettingsView: View {
                         
                         Spacer()
                         
-                        Picker("Default View", selection: $settings.defaultViewMode) {
+                        Picker("", selection: $settings.defaultViewMode) {
                             ForEach(ViewMode.allCases, id: \.self) { mode in
                                 HStack {
                                     Image(systemName: mode.icon)
@@ -39,18 +39,39 @@ struct SettingsView: View {
                     }
                     
                     // Show Attachment Icons Setting
-                    HStack {
-                        Image(systemName: "paperclip")
-                            .foregroundColor(.blue)
-                            .frame(width: 24, height: 24)
-                        
-                        Text("Show Attachment Icons")
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $settings.showAttachmentIcons)
-                    }
+                    SimpleToggle(
+                        isOn: $settings.showAttachmentIcons,
+                        icon: "paperclip",
+                        labelText: "Show Attachment Icons"
+                    )
+                    
+                    // Show Grid/List Toggle
+                    SimpleToggle(
+                        isOn: $settings.showAttachmentIcons,
+                        icon: "grid",
+                        labelText: "Show Grid/List Toggle"
+                    )
+                    
                 }
+                
+                Section(header: Text("Functionality")) {
+
+                    
+                    // Show NFC Toggle
+                    SimpleToggle(
+                        isOn: $settings.showAttachmentIcons,
+                        icon: "wave.3.right",
+                        labelText: "Enable NFC"
+                    )
+                    
+                    // Show QR Toggle
+                    SimpleToggle(
+                        isOn: $settings.showAttachmentIcons,
+                        icon: "qrcode",
+                        labelText: "Enable QR"
+                    )
+                }
+
                 
                 // About Section
                 Section(header: Text("About")) {

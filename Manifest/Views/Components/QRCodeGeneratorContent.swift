@@ -5,14 +5,6 @@
 //  Created by Kevin McCraney on 2025-09-04.
 //
 
-
-//
-//  QRCodeGeneratorContent.swift
-//  Manifest
-//
-//  Created by Kevin McCraney on 2025-09-04.
-//
-
 import SwiftUI
 import CoreImage.CIFilterBuiltins
 import UIKit

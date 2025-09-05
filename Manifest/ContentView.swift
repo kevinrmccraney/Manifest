@@ -68,6 +68,20 @@ struct ContentView: View {
             .background(AppTheme.primaryBackground) // Top area white/black
             .navigationTitle("Manifest")
             .toolbar {
+                ToolbarItemGroup(placement: .navigationBarLeading) {
+                    
+                    Button(action: { showingSettings = true }) {
+                        Image(systemName: "gearshape")
+                    }
+                    
+                    if !allItems.isEmpty {
+                        
+                        Button(action: toggleViewMode) {
+                            Image(systemName: showingGridView ? "list.bullet" : "square.grid.2x2")
+                        }
+                    }
+                    
+                }
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     // NFC Scanner button
                     Button(action: { showingNFCScanner = true }) {
@@ -79,14 +93,8 @@ struct ContentView: View {
                             Image(systemName: "magnifyingglass")
                         }
                         
-                        Button(action: toggleViewMode) {
-                            Image(systemName: showingGridView ? "list.bullet" : "square.grid.2x2")
-                        }
                     }
                     
-                    Button(action: { showingSettings = true }) {
-                        Image(systemName: "gearshape")
-                    }
                     
                     Button(action: { showingAddItem = true }) {
                         Image(systemName: "plus")
