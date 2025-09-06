@@ -14,14 +14,20 @@ struct SearchEmptyView: View {
         VStack(spacing: 20) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 60))
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
             
-            Text("No Results")
+            Text("No Results Found")
                 .font(.title2)
                 .fontWeight(.semibold)
             
-            Text("No items found for '\(searchText)'")
-                .foregroundColor(.secondary)
+            Text("No items found for \"\(searchText)\"")
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Text("Try searching with different keywords or check your spelling.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }

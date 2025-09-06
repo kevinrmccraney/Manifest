@@ -15,6 +15,8 @@ final class Item {
     var itemDescription: String
     var createdAt: Date
     var updatedAt: Date
+    var lastViewedAt: Date? // Track when item was last viewed
+    var viewCount: Int = 0 // Track how many times item has been viewed
     @Attribute(.externalStorage) var thumbnailData: Data?
     var customFields: Data?
     var tags: [String]
@@ -35,6 +37,8 @@ final class Item {
         self.itemDescription = itemDescription
         self.createdAt = Date()
         self.updatedAt = Date()
+        self.lastViewedAt = nil
+        self.viewCount = 0
         self.thumbnailData = thumbnailData
         self.customFields = customFields
         self.tags = tags
@@ -47,6 +51,12 @@ final class Item {
     
     func updateTimestamp() {
         self.updatedAt = Date()
+    }
+    
+    // Track when item is viewed
+    func recordView() {
+        lastViewedAt = Date()
+        viewCount += 1
     }
     
     // Archive/Unarchive methods

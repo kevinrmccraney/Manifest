@@ -32,6 +32,10 @@ struct BandedItemListView: View {
                     .listRowInsets(EdgeInsets()) // Remove default list row padding
                     .listRowSeparator(.hidden) // Hide default separators since we have banded rows
                     .buttonStyle(PlainButtonStyle()) // Remove the disclosure indicator/chevron
+                    .onTapGesture {
+                        // Record view when item is tapped in list
+                        item.recordView()
+                    }
                     .swipeActions(edge: .trailing) {
                         // Delete action on left swipe
                         Button("Delete", role: .destructive) {

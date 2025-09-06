@@ -53,9 +53,12 @@ struct ItemDetailView: View {
                     TimestampSection(item: item, debugMode: debugMode)
                     
                     if debugMode {
-                        Text("UUID: " + item.id.uuidString)
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("UUID: " + item.id.uuidString)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+
+                        }
                     }
                 }
                 
@@ -99,6 +102,10 @@ struct ItemDetailView: View {
             }
             
             Button("Cancel", role: .cancel) { }
+        }
+        .onAppear {
+            // Record view when the detail view appears
+            item.recordView()
         }
     }
 }

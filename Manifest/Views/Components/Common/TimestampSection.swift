@@ -12,31 +12,62 @@ struct TimestampSection: View {
     let debugMode: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Created \(item.createdAt.formatted(date: .abbreviated, time: .shortened))")
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Info")
                 .font(.caption)
-                .foregroundStyle(.tertiary)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
             
-            if item.updatedAt != item.createdAt {
-                Text("Updated \(item.updatedAt.formatted(date: .abbreviated, time: .shortened))")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-        }
-        .padding(.top, 8)
-        if debugMode{
             VStack(alignment: .leading, spacing: 4) {
-                Text("Open Count \(item.createdAt.formatted(date: .abbreviated, time: .shortened))")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                HStack {
+                    Text("Created:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(item.createdAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.caption)
+                        .foregroundStyle(.primary)
+                }
                 
                 if item.updatedAt != item.createdAt {
-                    Text("lastOpenTime \(item.updatedAt.formatted(date: .abbreviated, time: .shortened))")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
+                    HStack {
+                        Text("Modified:")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(item.updatedAt.formatted(date: .abbreviated, time: .shortened))
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                    }
+                }
+                
+                if debugMode {
+                    if let lastViewed = item.lastViewedAt {
+                        HStack {
+                            Text("Last Viewed:")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text(lastViewed.formatted(date: .abbreviated, time: .shortened))
+                                .font(.caption)
+                                .foregroundStyle(.primary)
+                        }
+                    }
+                    
+                    HStack {
+                        Text("View Count:")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("\(item.viewCount)")
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                    }
                 }
             }
-            .padding(.top, 8)
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
         }
     }
 }

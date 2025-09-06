@@ -10,7 +10,7 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Item.createdAt, order: .reverse) private var allItems: [Item]
+    @Query private var allItems: [Item]
     
     @State private var showingAddItem = false
     @State private var showingSearch = false
@@ -23,21 +23,33 @@ struct ContentView: View {
     @State private var showingQRItemNotFound = false
     @State private var navigationCoordinator = NavigationCoordinator.shared
     @State private var showArchivedItems = false
+    @State private var showingSortPicker = false
     
-    // Use settings for initial view mode
+    // Use settings for initial view mode and sort
     @State private var showingGridView = AppSettings.shared.defaultViewMode == .grid
     @State private var enabledNFCScanning = AppSettings.shared.enableNFC
     @State private var enabledQRScanning = AppSettings.shared.enableQR
     @State private var showViewToggle = AppSettings.shared.showViewToggle
+    @State private var showSortPicker = AppSettings.shared.showSortPicker
     @State private var showAttachmentIcons = AppSettings.shared.showAttachmentIcons
+    @State private var currentSortOption = AppSettings.shared.currentSortOption
+    
+    // Initialize the query with default sort
+    init() {
+        let sortOption = AppSettings.shared.currentSortOption
+        let sortDescriptors = Self.sortDescriptors(for: sortOption)
+        _allItems = Query(sort: sortDescriptors)
+    }
     
     // Filter items based on archive status
     var activeItems: [Item] {
-        allItems.filter { !$0.isArchived }
+        let filtered = allItems.filter { !$0.isArchived }
+        return applySorting(to: filtered)
     }
     
     var archivedItems: [Item] {
-        allItems.filter { $0.isArchived }
+        let filtered = allItems.filter { $0.isArchived }
+        return applySorting(to: filtered)
     }
     
     var currentItems: [Item] {
@@ -48,11 +60,12 @@ struct ContentView: View {
         if searchText.isEmpty {
             return currentItems
         } else {
-            return currentItems.filter { item in
+            let filtered = currentItems.filter { item in
                 item.name.localizedCaseInsensitiveContains(searchText) ||
                 item.itemDescription.localizedCaseInsensitiveContains(searchText) ||
                 item.tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
             }
+            return filtered
         }
     }
     
@@ -60,7 +73,7 @@ struct ContentView: View {
         NavigationView {
             VStack(spacing: 0) {
                 // Archive toggle section
-                if !archivedItems.isEmpty {
+                if !archivedItems.isEmpty && !showingSearch {
                     HStack {
                         Button(action: {
                             withAnimation {
@@ -85,14 +98,26 @@ struct ContentView: View {
                     .background(AppTheme.primaryBackground)
                 }
                 
+                // Show search bar inline when active (not as overlay)
                 if showingSearch {
-                    SearchBar(text: $searchText)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
-                        .padding(.bottom, 4)
-                        .background(AppTheme.primaryBackground) // White/Black background for search area
+                    HStack(spacing: 12) {
+                        SearchBar(text: $searchText)
+                        
+                        Button("Cancel") {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showingSearch = false
+                                searchText = ""
+                            }
+                        }
+                        .foregroundStyle(.blue)
+                        .fontWeight(.medium)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(AppTheme.primaryBackground)
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
-                
+
                 if filteredItems.isEmpty && !searchText.isEmpty {
                     SearchEmptyView(searchText: searchText)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -146,36 +171,39 @@ struct ContentView: View {
                     }
                 }
             }
-            .background(AppTheme.primaryBackground) // Top area white/black
+            .background(AppTheme.primaryBackground)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
-                    
-                    Button(action: { showingSettings = true }) {
-                        Image(systemName: "gearshape")
-                    }
-                    
-                    if !currentItems.isEmpty {
+                    if !showingSearch {
+                        Button(action: { showingSettings = true }) {
+                            Image(systemName: "gearshape")
+                        }
                         
-                        if showViewToggle{
-                            
+                        if !currentItems.isEmpty && showViewToggle {
                             Button(action: toggleViewMode) {
                                 Image(systemName: showingGridView ? "list.bullet" : "square.grid.2x2")
                             }
                         }
                     }
-                    
                 }
+                
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    
-                    if !currentItems.isEmpty {
+                    if !currentItems.isEmpty && !showingSearch {
+                        // Sort button
+                        if showSortPicker {
+                            Button(action: { showingSortPicker = true }) {
+                                Image(systemName: "arrow.up.arrow.down")
+                            }
+                        }
+                        
                         Button(action: toggleSearch) {
                             Image(systemName: "magnifyingglass")
                         }
                     }
-                    
                 }
             }
-            .navigationTitle(showArchivedItems ? "Archived Items" : "Items")
+            .navigationTitle(showingSearch ? "" : (showArchivedItems ? "Archived Items" : "Items"))
+            .navigationBarTitleDisplayMode(showingSearch ? .inline : .large)
             .sheet(isPresented: $showingAddItem) {
                 AddEditItemView()
             }
@@ -191,6 +219,16 @@ struct ContentView: View {
                 QRScannerView { itemID in
                     handleQRScan(itemID: itemID)
                 }
+            }
+            .confirmationDialog("Sort Items", isPresented: $showingSortPicker, titleVisibility: .visible) {
+                ForEach(SortOption.allCases, id: \.self) { option in
+                    Button(option.displayName) {
+                        updateSortOption(option)
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Choose how to sort your items")
             }
             .toolbar {
                 ToolbarItemGroup(placement: .bottomBar) {
@@ -239,11 +277,66 @@ struct ContentView: View {
                 }
             }
         }
-        .background(AppTheme.secondaryBackground.ignoresSafeArea()) // Overall grey background
+        .background(AppTheme.secondaryBackground.ignoresSafeArea())
         .onOpenURL { url in
             handleDeepLink(url: url)
         }
     }
+    
+    // MARK: - Sort Functions
+    
+    static func sortDescriptors(for option: SortOption) -> [SortDescriptor<Item>] {
+        switch option {
+        case .nameAscending:
+            return [SortDescriptor(\Item.name, order: .forward)]
+        case .nameDescending:
+            return [SortDescriptor(\Item.name, order: .reverse)]
+        case .newestFirst:
+            return [SortDescriptor(\Item.createdAt, order: .reverse)]
+        case .oldestFirst:
+            return [SortDescriptor(\Item.createdAt, order: .forward)]
+        case .recentlyModified:
+            return [SortDescriptor(\Item.updatedAt, order: .reverse)]
+        case .oldestModified:
+            return [SortDescriptor(\Item.updatedAt, order: .forward)]
+        case .recentlyViewed:
+            return [SortDescriptor(\Item.lastViewedAt, order: .reverse)]
+        case .frequentlyViewed:
+            return [SortDescriptor(\Item.viewCount, order: .reverse)]
+        }
+    }
+    
+    private func applySorting(to items: [Item]) -> [Item] {
+        switch currentSortOption {
+        case .nameAscending:
+            return items.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .nameDescending:
+            return items.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedDescending }
+        case .newestFirst:
+            return items.sorted { $0.createdAt > $1.createdAt }
+        case .oldestFirst:
+            return items.sorted { $0.createdAt < $1.createdAt }
+        case .recentlyModified:
+            return items.sorted { $0.updatedAt > $1.updatedAt }
+        case .oldestModified:
+            return items.sorted { $0.updatedAt < $1.updatedAt }
+        case .recentlyViewed:
+            return items.sorted { (item1, item2) in
+                let date1 = item1.lastViewedAt ?? Date.distantPast
+                let date2 = item2.lastViewedAt ?? Date.distantPast
+                return date1 > date2
+            }
+        case .frequentlyViewed:
+            return items.sorted { $0.viewCount > $1.viewCount }
+        }
+    }
+    
+    private func updateSortOption(_ option: SortOption) {
+        currentSortOption = option
+        settings.currentSortOption = option
+    }
+    
+    // MARK: - Other Functions
     
     private func toggleViewMode() {
         withAnimation(.easeInOut(duration: 0.3)) {
@@ -263,6 +356,8 @@ struct ContentView: View {
     private func handleNFCScan(itemID: UUID) {
         // Find the item with the scanned ID (including archived items)
         if let item = allItems.first(where: { $0.id == itemID }) {
+            // Record the view when accessed via NFC
+            item.recordView()
             navigationCoordinator.navigateToItem(item)
         } else {
             showingNFCItemNotFound = true
@@ -272,6 +367,8 @@ struct ContentView: View {
     private func handleQRScan(itemID: UUID) {
         // Find the item with the scanned ID (including archived items)
         if let item = allItems.first(where: { $0.id == itemID }) {
+            // Record the view when accessed via QR
+            item.recordView()
             navigationCoordinator.navigateToItem(item)
         } else {
             showingQRItemNotFound = true

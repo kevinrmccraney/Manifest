@@ -31,8 +31,7 @@ struct SettingsView: View {
                         icon: "grid",
                         labelText: "Show Grid/List Toggle"
                     )
-                    
-                    // Show Attachment Icons Setting
+
                     SimpleToggle(
                         isOn: $settings.showAttachmentIcons,
                         icon: "paperclip",
@@ -41,17 +40,25 @@ struct SettingsView: View {
                     
                 }
                 
+                Section(header: Text("Sorting")) {
+
+                    SimpleToggle(
+                        isOn: $settings.showSortPicker,
+                        icon: "arrow.up.arrow.down",
+                        labelText: "Show Sorting options"
+                    )
+
+                }
+
+                
                 Section(header: Text("Scanning")) {
 
-                    
-                    // Show NFC Toggle
                     SimpleToggle(
                         isOn: $settings.enableNFC,
                         icon: "wave.3.right",
                         labelText: "Enable NFC"
                     )
-                    
-                    // Show QR Toggle
+
                     SimpleToggle(
                         isOn: $settings.enableQR,
                         icon: "qrcode",
