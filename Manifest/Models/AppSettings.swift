@@ -27,76 +27,38 @@ class AppSettings {
     
     // Show attachment icons setting
     var showAttachmentIcons: Bool {
-        get {
-            // Default to true if not set
-            if UserDefaults.standard.object(forKey: "showAttachmentIcons") == nil {
-                return true
-            }
-            return UserDefaults.standard.bool(forKey: "showAttachmentIcons")
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "showAttachmentIcons")
-        }
+        get { bool(forKey: "showAttachmentIcons", default: true) }
+        set { UserDefaults.standard.set(newValue, forKey: "showAttachmentIcons") }
     }
     
     var enableNFC: Bool {
-        get {
-            // Default to false if not set
-            if UserDefaults.standard.object(forKey: "enableNFC") == nil {
-                return false
-            }
-            return UserDefaults.standard.bool(forKey: "enableNFC")
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "enableNFC")
-        }
+        get { bool(forKey: "enableNFC", default: false) }
+        set { UserDefaults.standard.set(newValue, forKey: "enableNFC") }
     }
     
     var enableQR: Bool {
-        get {
-            // Default to false if not set
-            if UserDefaults.standard.object(forKey: "enableQR") == nil {
-                return false
-            }
-            return UserDefaults.standard.bool(forKey: "enableQR")
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "enableQR")
-        }
+        get { bool(forKey: "enableQR", default: false) }
+        set { UserDefaults.standard.set(newValue, forKey: "enableQR") }
     }
     
     var debugMode: Bool {
-        get {
-            // Default to false if not set
-            if UserDefaults.standard.object(forKey: "debugMode") == nil {
-                return false
-            }
-            return UserDefaults.standard.bool(forKey: "debugMode")
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "debugMode")
-        }
+        get { bool(forKey: "debugMode", default: false) }
+        set { UserDefaults.standard.set(newValue, forKey: "debugMode") }
     }
-    
     
     var showViewToggle: Bool {
-        get {
-            // Default to false if not set
-            if UserDefaults.standard.object(forKey: "showViewToggle") == nil {
-                return false
-            }
-            return UserDefaults.standard.bool(forKey: "showViewToggle")
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "showViewToggle")
-        }
+        get { bool(forKey: "showViewToggle", default: false) }
+        set { UserDefaults.standard.set(newValue, forKey: "showViewToggle") }
     }
-
-
-    
-    
     
     private init() {}
+}
+
+func bool(forKey key: String, default defaultValue: Bool) -> Bool {
+    if let value = UserDefaults.standard.object(forKey: key) as? Bool {
+        return value
+    }
+    return defaultValue
 }
 
 

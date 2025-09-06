@@ -39,19 +39,6 @@ struct SettingsView: View {
                         labelText: "Show Attachment Icons"
                     )
                     
-                    SimpleToggle(
-                        isOn: $settings.showAttachmentIcons,
-                        icon: "",
-                        labelText: "Show Tags outside Detailed Item View"
-                    )
-                    
-                    SimpleToggle(
-                        isOn: $settings.showAttachmentIcons,
-                        icon: "",
-                        labelText: "Show Description outside Detailed Item View"
-                    )
-                    
-                    
                 }
                 
                 Section(header: Text("Scanning")) {

@@ -77,7 +77,7 @@ struct BandedItemRowView: View {
             // File attachment indicator with count - only show if setting is enabled
             if item.hasAnyAttachment && showAttachmentIcons {
                 HStack(spacing: 2) {
-                    Image(systemName: item.fileIcon)
+                    Image(systemName: "doc.fill")
                         .foregroundColor(.secondary)
                         .font(.caption)
                     

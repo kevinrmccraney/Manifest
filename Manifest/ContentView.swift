@@ -29,6 +29,7 @@ struct ContentView: View {
     @State private var enabledNFCScanning = AppSettings.shared.enableNFC
     @State private var enabledQRScanning = AppSettings.shared.enableQR
     @State private var showViewToggle = AppSettings.shared.showViewToggle
+    @State private var showAttachmentIcons = AppSettings.shared.showAttachmentIcons
     
     // Filter items based on archive status
     var activeItems: [Item] {
@@ -131,7 +132,7 @@ struct ContentView: View {
                     if showingGridView {
                         GridView(
                             items: filteredItems,
-                            showAttachmentIcons: settings.showAttachmentIcons,
+                            showAttachmentIcons: showAttachmentIcons,
                             isShowingArchived: showArchivedItems
                         )
                         .background(AppTheme.secondaryBackground)
@@ -146,7 +147,6 @@ struct ContentView: View {
                 }
             }
             .background(AppTheme.primaryBackground) // Top area white/black
-            .navigationTitle(showArchivedItems ? "Archived Items" : "Items")
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                     
@@ -167,32 +167,15 @@ struct ContentView: View {
                 }
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     
-                    if enabledNFCScanning {
-                        Button(action: { showingNFCScanner = true }) {
-                            Image(systemName: "wave.3.right")
-                        }
-                    }
-                    
-                    if enabledQRScanning {
-                        Button(action: { showingQRScanner = true }) {
-                            Image(systemName: "qrcode.viewfinder")
-                        }
-                    }
-                    
                     if !currentItems.isEmpty {
                         Button(action: toggleSearch) {
                             Image(systemName: "magnifyingglass")
                         }
                     }
                     
-                    // Only show add button when not viewing archived items
-                    if !showArchivedItems {
-                        Button(action: { showingAddItem = true }) {
-                            Image(systemName: "plus")
-                        }
-                    }
                 }
             }
+            .navigationTitle(showArchivedItems ? "Archived Items" : "Items")
             .sheet(isPresented: $showingAddItem) {
                 AddEditItemView()
             }
@@ -207,6 +190,28 @@ struct ContentView: View {
             .sheet(isPresented: $showingQRScanner) {
                 QRScannerView { itemID in
                     handleQRScan(itemID: itemID)
+                }
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    if enabledNFCScanning {
+                        Button(action: { showingNFCScanner = true }) {
+                            Image(systemName: "wave.3.right")
+                        }
+                    }
+                    
+                    if enabledQRScanning {
+                        Button(action: { showingQRScanner = true }) {
+                            Image(systemName: "qrcode.viewfinder")
+                        }
+                    }
+                    
+                    // Only show add button when not viewing archived items
+                    if !showArchivedItems {
+                        Button(action: { showingAddItem = true }) {
+                            Image(systemName: "plus")
+                        }
+                    }
                 }
             }
             .alert("Item Not Found", isPresented: $showingNFCItemNotFound) {

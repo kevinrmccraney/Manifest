@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ThemedGridItemView: View {
     let item: Item
+    let showAttachmentIcons: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -33,9 +34,9 @@ struct ThemedGridItemView: View {
                 }
                 
                 // File attachment indicator with count
-                if item.hasAnyAttachment {
+                if item.hasAnyAttachment && showAttachmentIcons {
                     HStack(spacing: 2) {
-                        Image(systemName: item.fileIcon)
+                        Image(systemName: "doc.fill")
                             .foregroundColor(.white)
                             .font(.caption)
                         
