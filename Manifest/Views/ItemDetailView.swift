@@ -69,7 +69,12 @@ struct ItemDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
-                
+                Button("Done") {
+                    dismiss()
+                }
+            }
+            
+            ToolbarItemGroup(placement: .navigationBarLeading) {
                 Button(action: {
                     showingActionSheet = true
                 }) {

@@ -202,7 +202,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle(showingSearch ? "" : (showArchivedItems ? "Archived Items" : "Items"))
+            .navigationTitle(showArchivedItems ? "Archived Items" : "Items")
             .navigationBarTitleDisplayMode(showingSearch ? .inline : .large)
             .sheet(isPresented: $showingAddItem) {
                 AddEditItemView()
@@ -232,19 +232,24 @@ struct ContentView: View {
             }
             .toolbar {
                 ToolbarItemGroup(placement: .bottomBar) {
-                    if enabledNFCScanning {
-                        Button(action: { showingNFCScanner = true }) {
-                            Image(systemName: "wave.3.right")
+                    // Left group: Scanning options
+                    HStack(spacing: 16) {
+                        if enabledNFCScanning {
+                            Button(action: { showingNFCScanner = true }) {
+                                Image(systemName: "wave.3.right")
+                            }
+                        }
+                        
+                        if enabledQRScanning {
+                            Button(action: { showingQRScanner = true }) {
+                                Image(systemName: "qrcode.viewfinder")
+                            }
                         }
                     }
                     
-                    if enabledQRScanning {
-                        Button(action: { showingQRScanner = true }) {
-                            Image(systemName: "qrcode.viewfinder")
-                        }
-                    }
+                    Spacer()
                     
-                    // Only show add button when not viewing archived items
+                    // Right side: Add button (only when not viewing archived items)
                     if !showArchivedItems {
                         Button(action: { showingAddItem = true }) {
                             Image(systemName: "plus")
@@ -267,7 +272,7 @@ struct ContentView: View {
                     NavigationView {
                         ItemDetailView(item: item)
                             .toolbar {
-                                ToolbarItem(placement: .navigationBarTrailing) {
+                                ToolbarItem(placement: .navigationBarLeading) {
                                     Button("Done") {
                                         navigationCoordinator.clearSelection()
                                     }

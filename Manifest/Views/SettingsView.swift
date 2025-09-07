@@ -15,17 +15,15 @@ struct SettingsView: View {
         NavigationView {
             Form {
                 Section(header: Text("Functionality")) {
-
                     SimpleToggle(
                         isOn: $settings.debugMode,
                         icon: "wrench",
                         labelText: "Debug Mode"
                     )
-                    
                 }
+                
                 // Display Settings Section
                 Section(header: Text("Appearance")) {
-
                     SimpleToggle(
                         isOn: $settings.showViewToggle,
                         icon: "grid",
@@ -37,22 +35,39 @@ struct SettingsView: View {
                         icon: "paperclip",
                         labelText: "Show Attachment Icons"
                     )
-                    
                 }
                 
                 Section(header: Text("Sorting")) {
-
                     SimpleToggle(
                         isOn: $settings.showSortPicker,
                         icon: "arrow.up.arrow.down",
-                        labelText: "Show Sorting options"
+                        labelText: "Show Sorting Options"
                     )
-
+                    
+                    // Default Sort Order Setting
+                    HStack {
+                        Image(systemName: "list.number")
+                            .foregroundStyle(.blue)
+                            .frame(width: 24, height: 24)
+                        
+                        Text("Default Sort Order")
+                        
+                        Spacer()
+                        
+                        Picker("", selection: $settings.defaultSortOption) {
+                            ForEach(SortOption.allCases, id: \.self) { option in
+                                HStack {
+                                    Image(systemName: option.icon)
+                                    Text(option.displayName)
+                                }
+                                .tag(option)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                    }
                 }
 
-                
                 Section(header: Text("Scanning")) {
-
                     SimpleToggle(
                         isOn: $settings.enableNFC,
                         icon: "wave.3.right",
@@ -66,7 +81,6 @@ struct SettingsView: View {
                     )
                 }
 
-                
                 // About Section
                 Section(header: Text("About")) {
                     HStack {
