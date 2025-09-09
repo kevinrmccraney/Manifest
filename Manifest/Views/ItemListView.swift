@@ -34,8 +34,6 @@ struct BandedItemListView: View {
                     .listRowSeparator(.hidden) // Hide default separators since we have banded rows
                     .contentShape(Rectangle()) // Make entire row tappable
                     .onTapGesture {
-                        // Record view when item is tapped in list
-                        item.recordView()
                         // Navigate to detail view
                         navigationCoordinator.navigateToItem(item)
                     }

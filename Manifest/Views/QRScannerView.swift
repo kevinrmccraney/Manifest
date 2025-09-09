@@ -12,42 +12,85 @@ struct QRScannerView: View {
     let onCodeScanned: (UUID) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var showingItemNotFound = false
+    @State private var showingCameraPermissionAlert = false
+    @State private var cameraPermissionStatus: AVAuthorizationStatus = .notDetermined
     
     var body: some View {
         NavigationView {
-            ZStack {
-                QRCodeScannerViewController { result in
-                    switch result {
-                    case .success(let code):
-                        handleScannedCode(code)
-                    case .failure:
-                        showingItemNotFound = true
-                    }
-                }
-                .ignoresSafeArea()
-                
-                // Overlay with scanning frame
-                VStack {
-                    Spacer()
-                    
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white, lineWidth: 4)
-                        .frame(width: 250, height: 250)
-                        .overlay(
+            Group {
+                #if targetEnvironment(simulator)
+                // Simulator fallback
+                MockQRScannerView(onCodeScanned: onCodeScanned)
+                #else
+                // Real device implementation
+                if cameraPermissionStatus == .authorized {
+                    ZStack {
+                        QRCodeScannerViewController { result in
+                            switch result {
+                            case .success(let code):
+                                handleScannedCode(code)
+                            case .failure:
+                                showingItemNotFound = true
+                            }
+                        }
+                        .ignoresSafeArea()
+                        
+                        // Overlay with scanning frame
+                        VStack {
+                            Spacer()
+                            
                             RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.5), lineWidth: 2)
-                        )
-                    
-                    Spacer()
-                    
-                    Text("Hold your camera over a QR code")
-                        .foregroundStyle(.white)
-                        .font(.headline)
-                        .padding()
-                        .background(Color.black.opacity(0.7))
-                        .cornerRadius(10)
-                        .padding(.bottom, 50)
+                                .stroke(Color.white, lineWidth: 4)
+                                .frame(width: 250, height: 250)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.white.opacity(0.5), lineWidth: 2)
+                                )
+                            
+                            Spacer()
+                            
+                            Text("Hold your camera over a QR code")
+                                .foregroundStyle(.white)
+                                .font(.headline)
+                                .padding()
+                                .background(Color.black.opacity(0.7))
+                                .cornerRadius(10)
+                                .padding(.bottom, 50)
+                        }
+                    }
+                } else {
+                    // Camera permission not granted
+                    VStack(spacing: 24) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.gray)
+                        
+                        Text("Camera Access Required")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        
+                        Text("To scan QR codes, please allow camera access in Settings.")
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal)
+                        
+                        if cameraPermissionStatus == .denied {
+                            Button("Open Settings") {
+                                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(settingsUrl)
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                        } else {
+                            Button("Request Camera Access") {
+                                requestCameraPermission()
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                    }
+                    .padding()
                 }
+                #endif
             }
             .navigationTitle("Scan QR Code")
             .navigationBarTitleDisplayMode(.inline)
@@ -60,11 +103,30 @@ struct QRScannerView: View {
                 }
             }
             .alert("Item Not Found", isPresented: $showingItemNotFound) {
-                Button("OK") { 
+                Button("OK") {
                     dismiss()
                 }
             } message: {
                 Text("The scanned QR code contains an item ID that doesn't exist in your Manifest. The item may have been deleted or belongs to a different user.")
+            }
+            .onAppear {
+                checkCameraPermission()
+            }
+        }
+    }
+    
+    private func checkCameraPermission() {
+        cameraPermissionStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        
+        if cameraPermissionStatus == .notDetermined {
+            requestCameraPermission()
+        }
+    }
+    
+    private func requestCameraPermission() {
+        AVCaptureDevice.requestAccess(for: .video) { granted in
+            DispatchQueue.main.async {
+                cameraPermissionStatus = AVCaptureDevice.authorizationStatus(for: .video)
             }
         }
     }
@@ -162,9 +224,18 @@ class QRScannerViewController: UIViewController {
     }
     
     private func setupCamera() {
+        // Check camera permission first
+        let authStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        guard authStatus == .authorized else {
+            print("Camera permission not granted: \(authStatus)")
+            delegate?.qrScannerDidFail()
+            return
+        }
+        
         captureSession = AVCaptureSession()
         
         guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
+            print("No video capture device available")
             delegate?.qrScannerDidFail()
             return
         }
@@ -174,6 +245,7 @@ class QRScannerViewController: UIViewController {
         do {
             videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
         } catch {
+            print("Error creating video input: \(error)")
             delegate?.qrScannerDidFail()
             return
         }
@@ -181,6 +253,7 @@ class QRScannerViewController: UIViewController {
         if captureSession.canAddInput(videoInput) {
             captureSession.addInput(videoInput)
         } else {
+            print("Cannot add video input to capture session")
             delegate?.qrScannerDidFail()
             return
         }
@@ -193,6 +266,7 @@ class QRScannerViewController: UIViewController {
             metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
             metadataOutput.metadataObjectTypes = [.qr]
         } else {
+            print("Cannot add metadata output to capture session")
             delegate?.qrScannerDidFail()
             return
         }
@@ -204,7 +278,7 @@ class QRScannerViewController: UIViewController {
     }
     
     private func startScanning() {
-        if !captureSession.isRunning {
+        if captureSession != nil && !captureSession.isRunning {
             DispatchQueue.global(qos: .background).async {
                 self.captureSession.startRunning()
             }
@@ -212,7 +286,7 @@ class QRScannerViewController: UIViewController {
     }
     
     private func stopScanning() {
-        if captureSession.isRunning {
+        if captureSession != nil && captureSession.isRunning {
             captureSession.stopRunning()
         }
     }
@@ -241,9 +315,7 @@ extension QRScannerViewController: AVCaptureMetadataOutputObjectsDelegate {
     }
 }
 
-// Add this to QRScannerView.swift for simulator testing only
-// Remove before shipping to production
-
+// Simulator fallback
 #if targetEnvironment(simulator)
 struct MockQRScannerView: View {
     let onCodeScanned: (UUID) -> Void
@@ -251,54 +323,40 @@ struct MockQRScannerView: View {
     @State private var mockUUID = ""
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 30) {
-                Text("QR Scanner")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                
-                Text("Simulator Mode - Enter UUID manually")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                
-                TextField("Enter Item UUID", text: $mockUUID)
-                    .textFieldStyle(.roundedBorder)
-                    .padding()
-                
-                Button("Simulate Scan") {
-                    if let uuid = UUID(uuidString: mockUUID) {
-                        onCodeScanned(uuid)
-                        dismiss()
-                    }
+        VStack(spacing: 30) {
+            Text("QR Scanner")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            Text("Simulator Mode - Enter UUID manually")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            
+            TextField("Enter Item UUID", text: $mockUUID)
+                .textFieldStyle(.roundedBorder)
+                .padding()
+            
+            Button("Simulate Scan") {
+                if let uuid = UUID(uuidString: mockUUID) {
+                    onCodeScanned(uuid)
+                    dismiss()
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(mockUUID.isEmpty)
-                
-                Spacer()
             }
-            .padding()
-            .navigationTitle("QR Scanner (Mock)")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+            .buttonStyle(.borderedProminent)
+            .disabled(mockUUID.isEmpty)
+            
+            Spacer()
+        }
+        .padding()
+        .navigationTitle("QR Scanner (Mock)")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Cancel") {
+                    dismiss()
                 }
             }
         }
     }
 }
 #endif
-
-// Then modify your main QRScannerView to use the mock in simulator:
-// Replace the body of QRScannerView with:
-/*
-var body: some View {
-    #if targetEnvironment(simulator)
-    MockQRScannerView(onCodeScanned: onCodeScanned)
-    #else
-    // Your existing QR scanner code here
-    #endif
-}
-*/

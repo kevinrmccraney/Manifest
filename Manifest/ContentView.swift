@@ -271,13 +271,6 @@ struct ContentView: View {
                 if let item = navigationCoordinator.selectedItem {
                     NavigationView {
                         ItemDetailView(item: item)
-                            .toolbar {
-                                ToolbarItem(placement: .navigationBarLeading) {
-                                    Button("Done") {
-                                        navigationCoordinator.clearSelection()
-                                    }
-                                }
-                            }
                     }
                 }
             }

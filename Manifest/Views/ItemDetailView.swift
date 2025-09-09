@@ -12,8 +12,14 @@ struct ItemDetailView: View {
     @State private var showingEditSheet = false
     @State private var showingActionSheet = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) private var presentationMode
     
     @State private var debugMode = AppSettings.shared.debugMode
+    
+    // Detect if we're presented modally or pushed
+    private var isPresentedModally: Bool {
+        presentationMode.wrappedValue.isPresented
+    }
     
     var body: some View {
         ScrollView {
@@ -68,9 +74,12 @@ struct ItemDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                Button("Done") {
-                    dismiss()
+            // Only show Done button if we're presented modally
+            if isPresentedModally {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
                 }
             }
             

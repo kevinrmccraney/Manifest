@@ -28,10 +28,6 @@ struct GridView: View {
                         ThemedGridItemView(item: item, showAttachmentIcons: showAttachmentIcons)
                     }
                     .buttonStyle(PlainButtonStyle())
-                    .onTapGesture {
-                        // Record view when item is tapped in grid
-                        item.recordView()
-                    }
                     .contextMenu {
                         if isShowingArchived {
                             Button("Unarchive") {
