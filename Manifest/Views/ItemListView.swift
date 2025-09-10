@@ -18,33 +18,32 @@ struct BandedItemListView: View {
     @State private var deletingItems: Set<UUID> = [] // Track items being deleted
     @State private var itemToEdit: Item?
     @State private var showingEditSheet = false
-    @State private var navigationCoordinator = NavigationCoordinator.shared
     
     var body: some View {
         List {
             ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 // Only show item if it's not being deleted
                 if !deletingItems.contains(item.id) {
-                    BandedItemRowView(
-                        item: item,
-                        isEvenRow: index % 2 == 0,
-                        showAttachmentIcons: showAttachmentIcons
-                    )
+                    ZStack {
+                        // The row content
+                        BandedItemRowView(
+                            item: item,
+                            isEvenRow: index % 2 == 0,
+                            showAttachmentIcons: showAttachmentIcons
+                        )
+                        
+                        // Invisible NavigationLink overlay
+                        NavigationLink(destination: ItemDetailView(item: item)) {
+                            EmptyView()
+                        }
+                        .opacity(0)
+                        .simultaneousGesture(TapGesture().onEnded {
+                            item.recordView()
+                        })
+                    }
                     .listRowInsets(EdgeInsets()) // Remove default list row padding
                     .listRowSeparator(.hidden) // Hide default separators since we have banded rows
-                    .contentShape(Rectangle()) // Make entire row tappable
-                    .onTapGesture {
-                        // Navigate to detail view
-                        navigationCoordinator.navigateToItem(item)
-                    }
                     .swipeActions(edge: .trailing) {
-                        // Details action on left swipe (moved here)
-                        Button("Details") {
-                            item.recordView() // Record view when accessing via swipe
-                            navigationCoordinator.navigateToItem(item)
-                        }
-                        .tint(.blue)
-                        
                         // Delete action on left swipe
                         Button("Delete", role: .destructive) {
                             // Immediately hide the item with animation
@@ -73,14 +72,6 @@ struct BandedItemListView: View {
                             }
                             .tint(.orange)
                         }
-                    }
-                    .onLongPressGesture {
-                        // Add haptic feedback for long press
-                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                        impactFeedback.impactOccurred()
-                        
-                        // Show context menu actions via alert
-                        showLongPressActions(for: item)
                     }
                     .contextMenu {
                         contextMenuItems(for: item)
@@ -116,12 +107,6 @@ struct BandedItemListView: View {
     
     @ViewBuilder
     private func contextMenuItems(for item: Item) -> some View {
-        // Details option
-        Button("Details") {
-            item.recordView()
-            navigationCoordinator.navigateToItem(item)
-        }
-        
         // Only show Edit button if item is not archived
         if !item.isArchived {
             Button("Edit") {
@@ -147,55 +132,6 @@ struct BandedItemListView: View {
         Button("Delete", role: .destructive) {
             itemToDelete = item
             showingDeleteAlert = true
-        }
-    }
-    
-    private func showLongPressActions(for item: Item) {
-        // Create an action sheet for long press
-        let alert = UIAlertController(title: item.name, message: "Choose an action", preferredStyle: .actionSheet)
-        
-        // Details action
-        alert.addAction(UIAlertAction(title: "View Details", style: .default) { _ in
-            item.recordView()
-            navigationCoordinator.navigateToItem(item)
-        })
-        
-        // Edit action (only if not archived)
-        if !item.isArchived {
-            alert.addAction(UIAlertAction(title: "Edit", style: .default) { _ in
-                itemToEdit = item
-                showingEditSheet = true
-            })
-        }
-        
-        // Archive/Unarchive action
-        if isShowingArchived {
-            alert.addAction(UIAlertAction(title: "Unarchive", style: .default) { _ in
-                withAnimation {
-                    item.unarchive()
-                }
-            })
-        } else {
-            alert.addAction(UIAlertAction(title: "Archive", style: .default) { _ in
-                withAnimation {
-                    item.archive()
-                }
-            })
-        }
-        
-        // Delete action
-        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { _ in
-            itemToDelete = item
-            showingDeleteAlert = true
-        })
-        
-        // Cancel action
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        
-        // Present the alert
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first {
-            window.rootViewController?.present(alert, animated: true)
         }
     }
     

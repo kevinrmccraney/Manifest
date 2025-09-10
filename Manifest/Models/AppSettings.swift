@@ -107,6 +107,16 @@ class AppSettings {
         }
     }
     
+    // Default emoji placeholder for items without images
+    var defaultEmojiPlaceholder: String {
+        get {
+            return UserDefaults.standard.string(forKey: "defaultEmojiPlaceholder") ?? "📦"
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "defaultEmojiPlaceholder")
+        }
+    }
+    
     // Show attachment icons setting
     var showAttachmentIcons: Bool {
         get { bool(forKey: "showAttachmentIcons", default: true) }

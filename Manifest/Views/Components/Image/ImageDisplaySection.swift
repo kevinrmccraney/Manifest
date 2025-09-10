@@ -19,12 +19,11 @@ struct ImageDisplaySection: View {
                 .cornerRadius(12)
         } else {
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.gray.opacity(0.3))
+                .fill(Color.gray.opacity(0.1))
                 .frame(height: 200)
                 .overlay(
-                    Image(systemName: "photo")
-                        .font(.largeTitle)
-                        .foregroundColor(.gray)
+                    Text(item.effectiveEmojiPlaceholder)
+                        .font(.system(size: 80))
                 )
         }
     }

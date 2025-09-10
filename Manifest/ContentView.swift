@@ -21,7 +21,6 @@ struct ContentView: View {
     @State private var settings = AppSettings.shared
     @State private var showingNFCItemNotFound = false
     @State private var showingQRItemNotFound = false
-    @State private var navigationCoordinator = NavigationCoordinator.shared
     @State private var showArchivedItems = false
     @State private var showingSortPicker = false
     
@@ -267,13 +266,6 @@ struct ContentView: View {
             } message: {
                 Text("The scanned QR code contains an item ID that doesn't exist in your Manifest. The item may have been deleted or belongs to a different user.")
             }
-            .sheet(isPresented: $navigationCoordinator.showingItemDetail) {
-                if let item = navigationCoordinator.selectedItem {
-                    NavigationView {
-                        ItemDetailView(item: item)
-                    }
-                }
-            }
         }
         .background(AppTheme.secondaryBackground.ignoresSafeArea())
         .onOpenURL { url in
@@ -356,7 +348,7 @@ struct ContentView: View {
         if let item = allItems.first(where: { $0.id == itemID }) {
             // Record the view when accessed via NFC
             item.recordView()
-            navigationCoordinator.navigateToItem(item)
+            // No longer using NavigationCoordinator - NFC/QR scanning will handle navigation differently
         } else {
             showingNFCItemNotFound = true
         }
@@ -367,7 +359,7 @@ struct ContentView: View {
         if let item = allItems.first(where: { $0.id == itemID }) {
             // Record the view when accessed via QR
             item.recordView()
-            navigationCoordinator.navigateToItem(item)
+            // No longer using NavigationCoordinator - NFC/QR scanning will handle navigation differently
         } else {
             showingQRItemNotFound = true
         }

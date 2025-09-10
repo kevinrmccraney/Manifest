@@ -21,6 +21,7 @@ final class Item {
     var customFields: Data?
     var tags: [String]
     var isArchived: Bool = false // New archive flag
+    var emojiPlaceholder: String? // Optional emoji placeholder for this item
     
     // Multiple file attachments relationship
     @Relationship(deleteRule: .cascade, inverse: \FileAttachment.item)
@@ -31,7 +32,7 @@ final class Item {
     var attachmentFilename: String?
     var attachmentDescription: String?
     
-    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], attachmentData: Data? = nil, attachmentFilename: String? = nil, attachmentDescription: String? = nil, isArchived: Bool = false) {
+    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], attachmentData: Data? = nil, attachmentFilename: String? = nil, attachmentDescription: String? = nil, isArchived: Bool = false, emojiPlaceholder: String? = nil) {
         self.id = UUID()
         self.name = name
         self.itemDescription = itemDescription
@@ -47,6 +48,7 @@ final class Item {
         self.attachmentDescription = attachmentDescription
         self.attachments = []
         self.isArchived = isArchived
+        self.emojiPlaceholder = emojiPlaceholder
     }
     
     func updateTimestamp() {
@@ -76,6 +78,18 @@ final class Item {
         return UIImage(data: data)
     }
     
+    // Get the emoji placeholder for this item, falling back to app default
+    var effectiveEmojiPlaceholder: String {
+        let result = emojiPlaceholder ?? AppSettings.shared.defaultEmojiPlaceholder
+        //print("Getting effective emoji placeholder: \(result) (item emoji: \(String(describing: emojiPlaceholder)), default: \(AppSettings.shared.defaultEmojiPlaceholder))")
+        return result
+    }
+    
+    // Check if this item has a visual representation (either image or emoji)
+    var hasVisualContent: Bool {
+        return thumbnailData != nil || emojiPlaceholder != nil || !AppSettings.shared.defaultEmojiPlaceholder.isEmpty
+    }
+    
     func setThumbnailImage(_ image: UIImage?) {
         guard let image = image else {
             thumbnailData = nil
@@ -90,6 +104,11 @@ final class Item {
         }
         
         thumbnailData = resizedImage.jpegData(compressionQuality: 0.8)
+        updateTimestamp()
+    }
+    
+    func setEmojiPlaceholder(_ emoji: String?) {
+        emojiPlaceholder = emoji?.isEmpty == true ? nil : emoji
         updateTimestamp()
     }
     

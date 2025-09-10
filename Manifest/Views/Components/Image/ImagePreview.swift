@@ -9,6 +9,18 @@ import SwiftUI
 
 struct ImagePreview: View {
     let image: UIImage?
+    let emojiPlaceholder: String?
+    
+    // Convenience initializer for backward compatibility
+    init(image: UIImage?) {
+        self.image = image
+        self.emojiPlaceholder = nil
+    }
+    
+    init(image: UIImage?, emojiPlaceholder: String?) {
+        self.image = image
+        self.emojiPlaceholder = emojiPlaceholder
+    }
     
     var body: some View {
         if let image = image {
@@ -20,11 +32,11 @@ struct ImagePreview: View {
                 .cornerRadius(8)
         } else {
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.3))
+                .fill(Color.gray.opacity(0.1))
                 .frame(width: 80, height: 80)
                 .overlay(
-                    Image(systemName: "photo")
-                        .foregroundColor(.gray)
+                    Text(emojiPlaceholder ?? AppSettings.shared.defaultEmojiPlaceholder)
+                        .font(.system(size: 30))
                 )
         }
     }

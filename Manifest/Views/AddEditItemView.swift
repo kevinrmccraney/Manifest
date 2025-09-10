@@ -16,6 +16,7 @@ struct AddEditItemView: View {
     @State private var name = ""
     @State private var description = ""
     @State private var selectedImage: UIImage?
+    @State private var selectedEmoji: String?
     @State private var showingImagePicker = false
     @State private var showingCamera = false
     @State private var showingActionSheet = false
@@ -43,6 +44,7 @@ struct AddEditItemView: View {
             _name = State(initialValue: item.name)
             _description = State(initialValue: item.itemDescription)
             _selectedImage = State(initialValue: item.thumbnailImage)
+            _selectedEmoji = State(initialValue: item.emojiPlaceholder)
             _tags = State(initialValue: item.tags)
             _attachments = State(initialValue: item.attachments)
             _attachmentDescription = State(initialValue: item.attachmentDescription ?? item.attachmentFilename ?? "")
@@ -66,27 +68,28 @@ struct AddEditItemView: View {
                 
                 ImageFormSection(
                     selectedImage: $selectedImage,
+                    selectedEmoji: $selectedEmoji,
                     showingActionSheet: $showingActionSheet
                 )
                 
+                EmojiFormSection(selectedEmoji: $selectedEmoji)
+                
                 MultiFileAttachmentFormSection(attachments: $attachments)
                 
-                if enabledQRScanning || enabledNFCScanning{
-
+                if enabledQRScanning || enabledNFCScanning {
                     // Physical Storage Section (combines QR Code and NFC)
                     Section(header: Text("Physical Storage")) {
                         
-                        if enabledQRScanning{
+                        if enabledQRScanning {
                             QRCodeGeneratorContent(
                                 item: item,
                                 itemName: name.isEmpty ? "Untitled Item" : name,
                                 itemID: itemID,
                                 attachments: $attachments
                             )
-
                         }
                         
-                        if enabledNFCScanning{
+                        if enabledNFCScanning {
                             // NFC Tag Creation
                             Button(action: {
                                 showingNFCWriter = true
@@ -165,6 +168,8 @@ struct AddEditItemView: View {
         let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
         
         print("Saving item with \(attachments.count) attachments")
+        print("Selected emoji: \(String(describing: selectedEmoji))")
+        
         for (index, attachment) in attachments.enumerated() {
             print("Attachment \(index): \(attachment.filename) (ID: \(attachment.id))")
         }
@@ -175,6 +180,7 @@ struct AddEditItemView: View {
             existingItem.itemDescription = trimmedDescription
             existingItem.tags = tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             existingItem.setThumbnailImage(selectedImage)
+            existingItem.setEmojiPlaceholder(selectedEmoji)
             
             // Update attachments - first remove all existing ones from the context
             for oldAttachment in existingItem.attachments {
@@ -195,13 +201,15 @@ struct AddEditItemView: View {
                 itemDescription: trimmedDescription,
                 thumbnailData: nil,
                 customFields: nil,
-                tags: tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                tags: tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
+                emojiPlaceholder: selectedEmoji
             )
             
             // Override the auto-generated ID with our pre-generated one
             newItem.id = itemID
             
             newItem.setThumbnailImage(selectedImage)
+            print("Created new item with emoji: \(String(describing: newItem.emojiPlaceholder))")
             
             // Add attachments
             for attachment in attachments {

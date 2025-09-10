@@ -9,12 +9,13 @@ import SwiftUI
 
 struct ImageFormSection: View {
     @Binding var selectedImage: UIImage?
+    @Binding var selectedEmoji: String?
     @Binding var showingActionSheet: Bool
     
     var body: some View {
         Section(header: Text("Image")) {
             HStack {
-                ImagePreview(image: selectedImage)
+                ImagePreview(image: selectedImage, emojiPlaceholder: selectedEmoji)
                 
                 ImageControls(
                     hasImage: selectedImage != nil,
