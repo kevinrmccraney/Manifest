@@ -9,21 +9,22 @@ import SwiftUI
 
 struct ImageDisplaySection: View {
     let item: Item
+    let frameHeight: CGFloat = 200
     
     var body: some View {
         if let image = item.thumbnailImage {
             Image(uiImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(maxHeight: 300)
+                .frame(maxHeight: frameHeight)
                 .cornerRadius(12)
         } else {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.gray.opacity(0.1))
-                .frame(height: 200)
+                .frame(height: frameHeight)
                 .overlay(
                     Text(item.effectiveEmojiPlaceholder)
-                        .font(.system(size: 80))
+                        .font(.system(size: frameHeight * 0.9))
                 )
         }
     }

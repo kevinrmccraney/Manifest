@@ -10,6 +10,7 @@ import SwiftUI
 struct ThemedGridItemView: View {
     let item: Item
     let showAttachmentIcons: Bool
+    let frameHeight: CGFloat = 120
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -19,16 +20,16 @@ struct ThemedGridItemView: View {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
-                        .frame(height: 120)
+                        .frame(height: frameHeight)
                         .clipped()
                         .cornerRadius(12)
                 } else {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color.gray.opacity(0.1))
-                        .frame(height: 120)
+                        .frame(height: frameHeight)
                         .overlay(
                             Text(item.effectiveEmojiPlaceholder)
-                                .font(.system(size: 40))
+                                .font(.system(size: frameHeight * 0.9))
                         )
                 }
                 

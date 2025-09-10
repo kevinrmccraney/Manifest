@@ -11,6 +11,7 @@ struct BandedItemRowView: View {
     let item: Item
     let isEvenRow: Bool
     let showAttachmentIcons: Bool
+    let frameHeight: CGFloat = 50
     
     var rowBackground: Color {
         isEvenRow ? AppTheme.evenRowBackground : AppTheme.oddRowBackground
@@ -29,10 +30,10 @@ struct BandedItemRowView: View {
             } else {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.gray.opacity(0.1))
-                    .frame(width: 50, height: 50)
+                    .frame(width: frameHeight, height: frameHeight)
                     .overlay(
                         Text(item.effectiveEmojiPlaceholder)
-                            .font(.system(size: 20))
+                            .font(.system(size: frameHeight * 0.9))
                     )
             }
             
