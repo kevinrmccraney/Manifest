@@ -18,20 +18,23 @@ struct ContentView: View {
     @State private var showingNFCScanner = false
     @State private var showingQRScanner = false
     @State private var searchText = ""
-    @State private var settings = AppSettings.shared
     @State private var showingNFCItemNotFound = false
     @State private var showingQRItemNotFound = false
     @State private var showArchivedItems = false
     @State private var showingSortPicker = false
     
-    // Use settings for initial view mode and sort
-    @State private var showingGridView = AppSettings.shared.defaultViewMode == .grid
-    @State private var enabledNFCScanning = AppSettings.shared.enableNFC
-    @State private var enabledQRScanning = AppSettings.shared.enableQR
-    @State private var showViewToggle = AppSettings.shared.showViewToggle
-    @State private var showSortPicker = AppSettings.shared.showSortPicker
-    @State private var showAttachmentIcons = AppSettings.shared.showAttachmentIcons
-    @State private var currentSortOption = AppSettings.shared.currentSortOption
+    // Single refresh trigger to force UI updates
+    @State private var settingsRefreshId = UUID()
+    
+    // Computed properties that read settings directly
+    private var settings: AppSettings { AppSettings.shared }
+    private var showingGridView: Bool { settings.defaultViewMode == .grid }
+    private var currentSortOption: SortOption { settings.currentSortOption }
+    private var showViewToggle: Bool { settings.showViewToggle }
+    private var showSortPicker: Bool { settings.showSortPicker }
+    private var showAttachmentIcons: Bool { settings.showAttachmentIcons }
+    private var enableNFC: Bool { settings.enableNFC }
+    private var enableQR: Bool { settings.enableQR }
     
     // Initialize the query with default sort
     init() {
@@ -160,13 +163,15 @@ struct ContentView: View {
                             isShowingArchived: showArchivedItems
                         )
                         .background(AppTheme.secondaryBackground)
+                        .id(settingsRefreshId)
                     } else {
                         BandedItemListView(
                             items: filteredItems,
-                            showAttachmentIcons: settings.showAttachmentIcons,
+                            showAttachmentIcons: showAttachmentIcons,
                             isShowingArchived: showArchivedItems
                         )
                         .background(AppTheme.secondaryBackground)
+                        .id(settingsRefreshId)
                     }
                 }
             }
@@ -209,6 +214,12 @@ struct ContentView: View {
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
             }
+            .onChange(of: showingSettings) { _, isShowing in
+                if !isShowing {
+                    // Settings sheet was dismissed, trigger UI refresh
+                    settingsRefreshId = UUID()
+                }
+            }
             .sheet(isPresented: $showingNFCScanner) {
                 NFCScannerView { itemID in
                     handleNFCScan(itemID: itemID)
@@ -233,13 +244,13 @@ struct ContentView: View {
                 ToolbarItemGroup(placement: .bottomBar) {
                     // Left group: Scanning options
                     HStack(spacing: 16) {
-                        if enabledNFCScanning {
+                        if enableNFC {
                             Button(action: { showingNFCScanner = true }) {
                                 Image(systemName: "wave.3.right")
                             }
                         }
                         
-                        if enabledQRScanning {
+                        if enableQR {
                             Button(action: { showingQRScanner = true }) {
                                 Image(systemName: "qrcode.viewfinder")
                             }
@@ -322,15 +333,18 @@ struct ContentView: View {
     }
     
     private func updateSortOption(_ option: SortOption) {
-        currentSortOption = option
-        settings.currentSortOption = option
+        AppSettings.shared.currentSortOption = option
+        settingsRefreshId = UUID()
     }
     
     // MARK: - Other Functions
     
     private func toggleViewMode() {
         withAnimation(.easeInOut(duration: 0.3)) {
-            showingGridView.toggle()
+            // Toggle the default view mode setting
+            let newMode: ViewMode = showingGridView ? .list : .grid
+            AppSettings.shared.defaultViewMode = newMode
+            settingsRefreshId = UUID()
         }
     }
     
