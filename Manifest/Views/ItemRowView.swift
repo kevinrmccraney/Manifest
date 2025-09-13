@@ -75,18 +75,33 @@ struct BandedItemRowView: View {
             
             Spacer()
             
-            // File attachment indicator with count - only show if setting is enabled
-            if item.hasAnyAttachment && showAttachmentIcons {
-                HStack(spacing: 2) {
-                    Image(systemName: "doc.fill")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                    
-                    let totalAttachments = item.attachments.count + (item.attachmentData != nil ? 1 : 0)
-                    if totalAttachments > 1 {
-                        Text("\(totalAttachments)")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+            // Context badges and file attachment indicator
+            VStack(spacing: 4) {
+                // Context badges
+                if item.contextFlags.hasAnyFlags {
+                    HStack(spacing: 2) {
+                        if item.contextFlags.isFragile {
+                            ContextBadgeView(type: .fragile, size: .small)
+                        }
+                        if item.contextFlags.isHeavy {
+                            ContextBadgeView(type: .heavy, size: .small)
+                        }
+                    }
+                }
+                
+                // File attachment indicator with count - only show if setting is enabled
+                if item.hasAnyAttachment && showAttachmentIcons {
+                    HStack(spacing: 2) {
+                        Image(systemName: "doc.fill")
+                            .foregroundStyle(.secondary)
+                            .font(.caption)
+                        
+                        let totalAttachments = item.attachments.count + (item.attachmentData != nil ? 1 : 0)
+                        if totalAttachments > 1 {
+                            Text("\(totalAttachments)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }

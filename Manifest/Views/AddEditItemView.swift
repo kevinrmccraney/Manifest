@@ -24,6 +24,7 @@ struct AddEditItemView: View {
     @State private var newTag = ""
     @State private var attachments: [FileAttachment] = []
     @State private var itemID: UUID = UUID() // Create UUID immediately
+    @State private var contextFlags: ItemContextFlags = ItemContextFlags()
     
     @State private var enabledNFCScanning = AppSettings.shared.enableNFC
     @State private var enabledQRScanning = AppSettings.shared.enableQR
@@ -49,6 +50,7 @@ struct AddEditItemView: View {
             _attachments = State(initialValue: item.attachments)
             _attachmentDescription = State(initialValue: item.attachmentDescription ?? item.attachmentFilename ?? "")
             _itemID = State(initialValue: item.id) // Use existing ID for editing
+            _contextFlags = State(initialValue: item.contextFlags)
         }
         // For new items, itemID is already initialized with UUID()
     }
@@ -73,6 +75,8 @@ struct AddEditItemView: View {
                 )
                 
                 EmojiFormSection(selectedEmoji: $selectedEmoji)
+                
+                ContextFormSection(contextFlags: $contextFlags)
                 
                 MultiFileAttachmentFormSection(attachments: $attachments)
                 
@@ -181,6 +185,7 @@ struct AddEditItemView: View {
             existingItem.tags = tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             existingItem.setThumbnailImage(selectedImage)
             existingItem.setEmojiPlaceholder(selectedEmoji)
+            existingItem.contextFlags = contextFlags
             
             // Update attachments - first remove all existing ones from the context
             for oldAttachment in existingItem.attachments {
@@ -207,6 +212,7 @@ struct AddEditItemView: View {
             
             // Override the auto-generated ID with our pre-generated one
             newItem.id = itemID
+            newItem.contextFlags = contextFlags
             
             newItem.setThumbnailImage(selectedImage)
             print("Created new item with emoji: \(String(describing: newItem.emojiPlaceholder))")

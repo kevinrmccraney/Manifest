@@ -22,6 +22,24 @@ final class Item {
     var tags: [String]
     var isArchived: Bool = false // New archive flag
     var emojiPlaceholder: String? // Optional emoji placeholder for this item
+    var itemContext: Data? // Store context flags (fragile, heavy, etc.)
+    
+    // Computed property to get item context flags
+    var contextFlags: ItemContextFlags {
+        get {
+            guard let data = itemContext,
+                  let flags = try? JSONDecoder().decode(ItemContextFlags.self, from: data) else {
+                return ItemContextFlags()
+            }
+            return flags
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue) {
+                itemContext = data
+                updateTimestamp()
+            }
+        }
+    }
     
     // Multiple file attachments relationship
     @Relationship(deleteRule: .cascade, inverse: \FileAttachment.item)
@@ -32,7 +50,7 @@ final class Item {
     var attachmentFilename: String?
     var attachmentDescription: String?
     
-    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], attachmentData: Data? = nil, attachmentFilename: String? = nil, attachmentDescription: String? = nil, isArchived: Bool = false, emojiPlaceholder: String? = nil) {
+    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], attachmentData: Data? = nil, attachmentFilename: String? = nil, attachmentDescription: String? = nil, isArchived: Bool = false, emojiPlaceholder: String? = nil, itemContext: Data? = nil) {
         self.id = UUID()
         self.name = name
         self.itemDescription = itemDescription
@@ -49,6 +67,7 @@ final class Item {
         self.attachments = []
         self.isArchived = isArchived
         self.emojiPlaceholder = emojiPlaceholder
+        self.itemContext = itemContext
     }
     
     func updateTimestamp() {

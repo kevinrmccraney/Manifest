@@ -33,23 +33,19 @@ struct ThemedGridItemView: View {
                         )
                 }
                 
-                // File attachment indicator with count
-                if item.hasAnyAttachment && showAttachmentIcons {
-                    HStack(spacing: 2) {
-                        Image(systemName: "doc.fill")
-                            .foregroundColor(.white)
-                            .font(.caption)
-                        
-                        let totalAttachments = item.attachments.count + (item.attachmentData != nil ? 1 : 0)
-                        if totalAttachments > 1 {
-                            Text("\(totalAttachments)")
-                                .font(.caption2)
-                                .foregroundColor(.white)
+                // Overlay container for both context badges and attachment icons
+                if (item.contextFlags.hasAnyFlags || (item.hasAnyAttachment && showAttachmentIcons)) {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            ContextOverlay(
+                                contextFlags: item.contextFlags,
+                                showAttachmentIcons: showAttachmentIcons,
+                                attachmentCount: item.attachments.count + (item.attachmentData != nil ? 1 : 0)
+                            )
                         }
+                        Spacer()
                     }
-                    .padding(4)
-                    .background(Color.black.opacity(0.6))
-                    .cornerRadius(4)
                     .padding(8)
                 }
             }

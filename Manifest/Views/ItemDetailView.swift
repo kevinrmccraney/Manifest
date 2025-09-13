@@ -39,6 +39,11 @@ struct ItemDetailView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     // Title and description
                     TitleDescriptionSection(item: item)
+                    
+                    // Context information
+                    if item.contextFlags.hasAnyFlags {
+                        ContextDisplayView(contextFlags: item.contextFlags)
+                    }
                                         
                     if item.hasAnyAttachment {
                         MultiAttachmentsDisplayView(item: item)
