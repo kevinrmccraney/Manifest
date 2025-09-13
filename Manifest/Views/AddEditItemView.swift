@@ -20,6 +20,7 @@ struct AddEditItemView: View {
     @State private var showingImagePicker = false
     @State private var showingCamera = false
     @State private var showingActionSheet = false
+    @State private var showingEmojiPicker = false
     @State private var tags: [String] = []
     @State private var newTag = ""
     @State private var attachments: [FileAttachment] = []
@@ -57,57 +58,74 @@ struct AddEditItemView: View {
     
     var body: some View {
         NavigationView {
-            Form {
-                ItemDetailsFormSection(
-                    name: $name,
-                    description: $description
-                )
+            VStack(spacing: 0) {
+                // Current item name header (only show when editing)
+                if let item = item {
+                    CurrentItemHeader(
+                        itemName: item.name,
+                        thumbnailImage: item.thumbnailImage,
+                        emojiPlaceholder: item.effectiveEmojiPlaceholder
+                    )
+                    .padding()
+                    .background(AppTheme.primaryBackground)
+                    
+                    Divider()
+                }
                 
-                TagsFormSection(
-                    tags: $tags,
-                    newTag: $newTag
-                )
-                
-                ImageFormSection(
-                    selectedImage: $selectedImage,
-                    selectedEmoji: $selectedEmoji,
-                    showingActionSheet: $showingActionSheet
-                )
-                
-                EmojiFormSection(selectedEmoji: $selectedEmoji)
-                
-                ContextFormSection(contextFlags: $contextFlags)
-                
-                MultiFileAttachmentFormSection(attachments: $attachments)
-                
-                if enabledQRScanning || enabledNFCScanning {
-                    // Physical Storage Section (combines QR Code and NFC)
-                    Section(header: Text("Physical Storage")) {
-                        
-                        if enabledQRScanning {
-                            QRCodeGeneratorContent(
-                                item: item,
-                                itemName: name.isEmpty ? "Untitled Item" : name,
-                                itemID: itemID,
-                                attachments: $attachments
-                            )
+                Form {
+                    ItemDetailsWithEmojiFormSection(
+                        name: $name,
+                        description: $description,
+                        selectedEmoji: $selectedEmoji,
+                        onEmojiTapped: {
+                            showingEmojiPicker = true
                         }
-                        
-                        if enabledNFCScanning {
-                            // NFC Tag Creation
-                            Button(action: {
-                                showingNFCWriter = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "wave.3.right.circle.fill")
-                                        .foregroundStyle(.blue)
-                                    Text("Create NFC Tag")
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundStyle(.tertiary)
-                                }
+                    )
+                    
+                    TagsFormSection(
+                        tags: $tags,
+                        newTag: $newTag
+                    )
+                    
+                    ImageFormSection(
+                        selectedImage: $selectedImage,
+                        selectedEmoji: $selectedEmoji,
+                        showingActionSheet: $showingActionSheet
+                    )
+                    
+                    ContextFormSection(contextFlags: $contextFlags)
+                    
+                    MultiFileAttachmentFormSection(attachments: $attachments)
+                    
+                    if enabledQRScanning || enabledNFCScanning {
+                        // Physical Storage Section (combines QR Code and NFC)
+                        Section(header: Text("Physical Storage")) {
+                            
+                            if enabledQRScanning {
+                                QRCodeGeneratorContent(
+                                    item: item,
+                                    itemName: name.isEmpty ? "Untitled Item" : name,
+                                    itemID: itemID,
+                                    attachments: $attachments
+                                )
                             }
-                            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            
+                            if enabledNFCScanning {
+                                // NFC Tag Creation
+                                Button(action: {
+                                    showingNFCWriter = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "wave.3.right.circle.fill")
+                                            .foregroundStyle(.blue)
+                                        Text("Create NFC Tag")
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                }
+                                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            }
                         }
                     }
                 }
@@ -127,6 +145,9 @@ struct AddEditItemView: View {
                     }
                     .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
+            }
+            .sheet(isPresented: $showingEmojiPicker) {
+                MessagesStyleEmojiPicker(selectedEmoji: $selectedEmoji)
             }
             .confirmationDialog("Select Image", isPresented: $showingActionSheet) {
                 Button("Camera") {
@@ -228,5 +249,48 @@ struct AddEditItemView: View {
         }
         
         dismiss()
+    }
+}
+
+// MARK: - Current Item Header
+
+struct CurrentItemHeader: View {
+    let itemName: String
+    let thumbnailImage: UIImage?
+    let emojiPlaceholder: String
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Editing Item")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            
+            HStack(spacing: 12) {
+                // Small thumbnail/emoji
+                if let image = thumbnailImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 32, height: 32)
+                        .clipped()
+                        .cornerRadius(6)
+                } else {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.gray.opacity(0.1))
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Text(emojiPlaceholder)
+                                .font(.system(size: 20))
+                        )
+                }
+                
+                Text(itemName)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                
+                Spacer()
+            }
+        }
     }
 }

@@ -20,7 +20,7 @@ struct TagItemView: View {
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.caption)
-                    .foregroundColor(.red)
+                    .foregroundStyle(.red)
             }
         }
         .padding(.horizontal, 8)

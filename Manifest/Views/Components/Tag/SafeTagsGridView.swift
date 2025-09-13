@@ -9,35 +9,29 @@ import SwiftUI
 
 struct SafeTagsGridView: View {
     @Binding var tags: [String]
-    @State private var tagsCopy: [String] = []
     
     var body: some View {
         VStack {
-            if !tagsCopy.isEmpty {
+            if !tags.isEmpty {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 8) {
-                    ForEach(Array(tagsCopy.enumerated()), id: \.offset) { index, tag in
+                    ForEach(Array(tags.enumerated()), id: \.element) { index, tag in
                         TagItemView(tag: tag) {
-                            removeTag(at: index)
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                removeTag(at: index)
+                            }
                         }
                     }
                 }
             } else {
                 Text("No tags added")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .font(.caption)
             }
-        }
-        .onAppear {
-            tagsCopy = tags
-        }
-        .onChange(of: tags) { _, newValue in
-            tagsCopy = newValue
         }
     }
     
     private func removeTag(at index: Int) {
-        guard index < tagsCopy.count && index >= 0 else { return }
-        tagsCopy.remove(at: index)
-        tags = tagsCopy // Update the binding
+        guard index >= 0 && index < tags.count else { return }
+        tags.remove(at: index)
     }
 }
