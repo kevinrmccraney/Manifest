@@ -1,8 +1,3 @@
-//
-//  Updated ContentView.swift with Centered Title
-//  Manifest
-//
-
 import SwiftUI
 import SwiftData
 
@@ -21,10 +16,8 @@ struct ContentView: View {
     @State private var showArchivedItems = false
     @State private var showingSortPicker = false
     
-    // Single refresh trigger to force UI updates
     @State private var settingsRefreshId = UUID()
     
-    // Computed properties that read settings directly
     private var settings: AppSettings { AppSettings.shared }
     private var showingGridView: Bool { settings.defaultViewMode == .grid }
     private var currentSortOption: SortOption { settings.currentSortOption }
@@ -34,14 +27,12 @@ struct ContentView: View {
     private var enableNFC: Bool { settings.enableNFC }
     private var enableQR: Bool { settings.enableQR }
     
-    // Initialize the query with default sort
     init() {
         let sortOption = AppSettings.shared.currentSortOption
         let sortDescriptors = Self.sortDescriptors(for: sortOption)
         _allItems = Query(sort: sortDescriptors)
     }
     
-    // Filter items based on archive status
     var activeItems: [Item] {
         let filtered = allItems.filter { !$0.isArchived }
         return applySorting(to: filtered)
@@ -72,8 +63,8 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Archive toggle section
-                if !archivedItems.isEmpty && !showingSearch {
+                // The "Show Archived" button should always be present if there are archived items
+                if !archivedItems.isEmpty {
                     HStack {
                         Button(action: {
                             withAnimation {
@@ -98,33 +89,12 @@ struct ContentView: View {
                     .background(AppTheme.primaryBackground)
                 }
                 
-                // Show search bar inline when active (not as overlay)
-                if showingSearch {
-                    HStack(spacing: 12) {
-                        SearchBar(text: $searchText)
-                        
-                        Button("Cancel") {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showingSearch = false
-                                searchText = ""
-                            }
-                        }
-                        .foregroundStyle(.blue)
-                        .fontWeight(.medium)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(AppTheme.primaryBackground)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                }
-
                 if filteredItems.isEmpty && !searchText.isEmpty {
                     SearchEmptyView(searchText: searchText)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(AppTheme.secondaryBackground)
                 } else if currentItems.isEmpty {
                     if showArchivedItems {
-                        // Empty archived state
                         VStack(spacing: 20) {
                             Image(systemName: "tray")
                                 .font(.system(size: 60))
@@ -175,7 +145,6 @@ struct ContentView: View {
             }
             .background(AppTheme.primaryBackground)
             .toolbar {
-                // Left side toolbar items
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                     if !showingSearch {
                         Button(action: { showingSettings = true }) {
@@ -190,17 +159,14 @@ struct ContentView: View {
                     }
                 }
                 
-                // CENTER - Title as a toolbar item
                 ToolbarItem(placement: .principal) {
                     Text(showArchivedItems ? "Archived Items" : "Items")
                         .font(.headline)
                         .fontWeight(.semibold)
                 }
                 
-                // Right side toolbar items
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     if !currentItems.isEmpty && !showingSearch {
-                        // Sort button
                         if showSortPicker {
                             Button(action: { showingSortPicker = true }) {
                                 Image(systemName: "arrow.up.arrow.down")
@@ -213,7 +179,6 @@ struct ContentView: View {
                     }
                 }
             }
-            // Remove the old navigationTitle since we're using .principal placement
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingAddItem) {
                 AddEditItemView()
@@ -223,7 +188,6 @@ struct ContentView: View {
             }
             .onChange(of: showingSettings) { _, isShowing in
                 if !isShowing {
-                    // Settings sheet was dismissed, trigger UI refresh
                     settingsRefreshId = UUID()
                 }
             }
@@ -249,7 +213,6 @@ struct ContentView: View {
             }
             .toolbar {
                 ToolbarItemGroup(placement: .bottomBar) {
-                    // Left group: Scanning options
                     HStack(spacing: 16) {
                         if enableNFC {
                             Button(action: { showingNFCScanner = true }) {
@@ -266,7 +229,6 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    // Right side: Add button (only when not viewing archived items)
                     if !showArchivedItems {
                         Button(action: { showingAddItem = true }) {
                             Image(systemName: "plus")
@@ -283,6 +245,43 @@ struct ContentView: View {
                 Button("OK") { }
             } message: {
                 Text("The scanned QR code contains an item ID that doesn't exist in your Manifest. The item may have been deleted or belongs to a different user.")
+            }
+        }
+        .overlay(alignment: .top) {
+            Group {
+                if showingSearch {
+                    ZStack(alignment: .bottom) {
+                        if !archivedItems.isEmpty {
+                            Color.clear
+                                .frame(height: 132) // A generous height to cover the toolbar and button
+                                .background(.ultraThinMaterial)
+                        } else {
+                            Color.clear
+                                .frame(height: 108) // A shorter height for just the toolbar
+                                .background(.ultraThinMaterial)
+                        }
+
+                        // The Search bar itself
+                        HStack(spacing: 8) {
+                            SearchBar(text: $searchText)
+                            
+                            Button("Cancel") {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showingSearch = false
+                                    searchText = ""
+                                }
+                            }
+                            .font(.system(size: 16))
+                            .foregroundStyle(.blue)
+                            .fontWeight(.medium)
+                        }
+                        .padding(.horizontal, 8)
+                        // This is the key change to conditionally adjust the position
+                        .padding(.bottom, !archivedItems.isEmpty ? 36 : 12)
+                    }
+                    .ignoresSafeArea(.container, edges: .top)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
         }
         .background(AppTheme.secondaryBackground.ignoresSafeArea())
@@ -339,16 +338,15 @@ struct ContentView: View {
         }
     }
     
+    // MARK: - Other Functions
+    
     private func updateSortOption(_ option: SortOption) {
         AppSettings.shared.currentSortOption = option
         settingsRefreshId = UUID()
     }
     
-    // MARK: - Other Functions
-    
     private func toggleViewMode() {
         withAnimation(.easeInOut(duration: 0.3)) {
-            // Toggle the default view mode setting
             let newMode: ViewMode = showingGridView ? .list : .grid
             AppSettings.shared.defaultViewMode = newMode
             settingsRefreshId = UUID()
@@ -365,22 +363,16 @@ struct ContentView: View {
     }
     
     private func handleNFCScan(itemID: UUID) {
-        // Find the item with the scanned ID (including archived items)
         if let item = allItems.first(where: { $0.id == itemID }) {
-            // Record the view when accessed via NFC
             item.recordView()
-            // No longer using NavigationCoordinator - NFC/QR scanning will handle navigation differently
         } else {
             showingNFCItemNotFound = true
         }
     }
     
     private func handleQRScan(itemID: UUID) {
-        // Find the item with the scanned ID (including archived items)
         if let item = allItems.first(where: { $0.id == itemID }) {
-            // Record the view when accessed via QR
             item.recordView()
-            // No longer using NavigationCoordinator - NFC/QR scanning will handle navigation differently
         } else {
             showingQRItemNotFound = true
         }
@@ -389,14 +381,13 @@ struct ContentView: View {
     private func handleDeepLink(url: URL) {
         print("Received deep link: \(url)")
         
-        // Handle manifest://item/{uuid} URLs
         if url.scheme == "manifest" && url.host == "item" {
             let pathComponents = url.pathComponents
             if pathComponents.count >= 2 {
                 let uuidString = pathComponents[1]
                 if let itemID = UUID(uuidString: uuidString) {
                     print("Parsed item ID from deep link: \(itemID)")
-                    handleNFCScan(itemID: itemID) // Reuse the same logic
+                    handleNFCScan(itemID: itemID)
                 } else {
                     print("Invalid UUID in deep link: \(uuidString)")
                 }
