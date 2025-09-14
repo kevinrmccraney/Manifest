@@ -1,8 +1,6 @@
 //
-//  ContentView.swift
+//  Updated ContentView.swift with Centered Title
 //  Manifest
-//
-//  Created by Kevin McCraney on 2025-09-03.
 //
 
 import SwiftUI
@@ -177,6 +175,7 @@ struct ContentView: View {
             }
             .background(AppTheme.primaryBackground)
             .toolbar {
+                // Left side toolbar items
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                     if !showingSearch {
                         Button(action: { showingSettings = true }) {
@@ -191,6 +190,14 @@ struct ContentView: View {
                     }
                 }
                 
+                // CENTER - Title as a toolbar item
+                ToolbarItem(placement: .principal) {
+                    Text(showArchivedItems ? "Archived Items" : "Items")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
+                
+                // Right side toolbar items
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     if !currentItems.isEmpty && !showingSearch {
                         // Sort button
@@ -206,8 +213,8 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle(showArchivedItems ? "Archived Items" : "Items")
-            .navigationBarTitleDisplayMode(showingSearch ? .inline : .large)
+            // Remove the old navigationTitle since we're using .principal placement
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingAddItem) {
                 AddEditItemView()
             }
