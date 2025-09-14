@@ -22,6 +22,7 @@ struct MultiAttachmentsDisplayView: View {
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
+                .textCase(.uppercase)
             
             // New multi-file attachments
             if !item.attachments.isEmpty {

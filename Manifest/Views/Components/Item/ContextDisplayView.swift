@@ -25,6 +25,7 @@ struct ContextDisplayView: View {
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
                 
                 VStack(alignment: .leading, spacing: 6) {
                     if contextFlags.isFragile {

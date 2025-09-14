@@ -12,7 +12,7 @@ struct TagsFormSection: View {
     @Binding var newTag: String
     
     var body: some View {
-        Section(header: Text("Tags")) {
+        Section(header: Text("Tags").textCase(.uppercase)) {
             HStack {
                 TextField("Add tag", text: $newTag)
                     .onSubmit {

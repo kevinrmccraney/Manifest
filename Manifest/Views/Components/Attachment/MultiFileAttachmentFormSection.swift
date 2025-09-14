@@ -19,6 +19,7 @@ struct MultiFileAttachmentFormSection: View {
     var body: some View {
         Section(header: HStack {
             Text("File Attachments")
+            .textCase(.uppercase)
             Spacer()
             Button("Add Files") {
                 print("Add Files button tapped")

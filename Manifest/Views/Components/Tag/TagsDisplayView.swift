@@ -16,6 +16,7 @@ struct TagsDisplayView: View {
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(.secondary)
+                .textCase(.uppercase)
             
             LazyVGrid(columns: [
                 GridItem(.adaptive(minimum: 60), spacing: 8)

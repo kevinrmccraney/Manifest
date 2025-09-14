@@ -78,7 +78,7 @@ struct ContextFormSection: View {
                             .foregroundStyle(.orange)
                             .frame(width: 24, height: 24)
                         
-                        Text("Special Handling")
+                        Text("Special Handling").textCase(.uppercase)
                         
                         Spacer()
                         

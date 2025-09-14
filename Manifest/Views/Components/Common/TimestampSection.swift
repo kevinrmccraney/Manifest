@@ -17,6 +17,7 @@ struct TimestampSection: View {
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
+                .textCase(.uppercase)
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
