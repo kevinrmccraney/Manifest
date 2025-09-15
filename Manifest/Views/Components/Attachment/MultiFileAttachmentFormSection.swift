@@ -212,10 +212,25 @@ struct FilePreviewWrapper: UIViewControllerRepresentable {
             
             let previewController = QLPreviewController()
             previewController.dataSource = PreviewDataSource(url: tempFileURL)
-            return previewController
+            
+            // Create navigation controller to wrap the preview controller
+            let navigationController = UINavigationController(rootViewController: previewController)
+            
+            // Set up the navigation bar
+            previewController.navigationItem.title = attachment.filename
+            previewController.navigationItem.rightBarButtonItem = UIBarButtonItem(
+                title: "Done",
+                style: .done,
+                target: previewController,
+                action: #selector(QLPreviewController.dismissPreview)
+            )
+            
+            return navigationController
         } catch {
             print("Error creating preview: \(error)")
-            return UIViewController()
+            let errorController = UIViewController()
+            errorController.view.backgroundColor = .systemBackground
+            return errorController
         }
     }
     
@@ -233,6 +248,13 @@ struct FilePreviewWrapper: UIViewControllerRepresentable {
         func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
             return url as QLPreviewItem
         }
+    }
+}
+
+// Extension to add the dismiss action
+extension QLPreviewController {
+    @objc func dismissPreview() {
+        dismiss(animated: true)
     }
 }
 

@@ -148,6 +148,11 @@ class AppSettings {
         set { UserDefaults.standard.set(newValue, forKey: "showViewToggle") }
     }
     
+    var globalSearch: Bool {
+        get { bool(forKey: "globalSearch", default: true) }
+        set { UserDefaults.standard.set(newValue, forKey: "globalSearch") }
+    }
+    
     private init() {}
 }
 

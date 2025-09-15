@@ -26,6 +26,7 @@ struct ContentView: View {
     private var showAttachmentIcons: Bool { settings.showAttachmentIcons }
     private var enableNFC: Bool { settings.enableNFC }
     private var enableQR: Bool { settings.enableQR }
+    private var globalSearch: Bool { settings.globalSearch }
     
     init() {
         let sortOption = AppSettings.shared.currentSortOption
@@ -51,12 +52,13 @@ struct ContentView: View {
         if searchText.isEmpty {
             return currentItems
         } else {
-            let filtered = currentItems.filter { item in
+            // Search across ALL items, not just current view mode
+            let allFilteredItems = allItems.filter { item in
                 item.name.localizedCaseInsensitiveContains(searchText) ||
                 item.itemDescription.localizedCaseInsensitiveContains(searchText) ||
                 item.tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
             }
-            return filtered
+            return applySorting(to: allFilteredItems)
         }
     }
     
@@ -64,7 +66,8 @@ struct ContentView: View {
         NavigationView {
             VStack(spacing: 0) {
                 // The "Show Archived" button should always be present if there are archived items
-                if !archivedItems.isEmpty {
+                // Only show this when not searching
+                if !archivedItems.isEmpty && searchText.isEmpty {
                     HStack {
                         Button(action: {
                             withAnimation {
@@ -93,7 +96,7 @@ struct ContentView: View {
                     SearchEmptyView(searchText: searchText)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(AppTheme.secondaryBackground)
-                } else if currentItems.isEmpty {
+                } else if currentItems.isEmpty && searchText.isEmpty {
                     if showArchivedItems {
                         VStack(spacing: 20) {
                             Image(systemName: "tray")
@@ -151,7 +154,7 @@ struct ContentView: View {
                             Image(systemName: "gearshape")
                         }
                         
-                        if !currentItems.isEmpty && showViewToggle {
+                        if !currentItems.isEmpty && showViewToggle && searchText.isEmpty {
                             Button(action: toggleViewMode) {
                                 Image(systemName: showingGridView ? "list.bullet" : "square.grid.2x2")
                             }
@@ -160,14 +163,14 @@ struct ContentView: View {
                 }
                 
                 ToolbarItem(placement: .principal) {
-                    Text(showArchivedItems ? "Archived Items" : "Items")
+                    Text(getNavigationTitle())
                         .font(.headline)
                         .fontWeight(.semibold)
                 }
                 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    if !currentItems.isEmpty && !showingSearch {
-                        if showSortPicker {
+                    if !allItems.isEmpty && !showingSearch {
+                        if showSortPicker && searchText.isEmpty {
                             Button(action: { showingSortPicker = true }) {
                                 Image(systemName: "arrow.up.arrow.down")
                             }
@@ -229,7 +232,7 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    if !showArchivedItems {
+                    if !showArchivedItems || (!searchText.isEmpty && globalSearch) {
                         Button(action: { showingAddItem = true }) {
                             Image(systemName: "plus")
                         }
@@ -251,7 +254,7 @@ struct ContentView: View {
             Group {
                 if showingSearch {
                     ZStack(alignment: .bottom) {
-                        if !archivedItems.isEmpty {
+                        if !archivedItems.isEmpty && searchText.isEmpty {
                             Color.clear
                                 .frame(height: 132) // A generous height to cover the toolbar and button
                                 .background(.ultraThinMaterial)
@@ -277,7 +280,7 @@ struct ContentView: View {
                         }
                         .padding(.horizontal, 8)
                         // This is the key change to conditionally adjust the position
-                        .padding(.bottom, !archivedItems.isEmpty ? 36 : 12)
+                        .padding(.bottom, !archivedItems.isEmpty && searchText.isEmpty ? 36 : 12)
                     }
                     .ignoresSafeArea(.container, edges: .top)
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -288,6 +291,25 @@ struct ContentView: View {
         .onOpenURL { url in
             handleDeepLink(url: url)
         }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func getNavigationTitle() -> String {
+        if !searchText.isEmpty {
+            let totalResults = filteredItems.count
+            let activeResults = filteredItems.filter { !$0.isArchived }.count
+            let archivedResults = filteredItems.filter { $0.isArchived }.count
+            
+            if activeResults > 0 && archivedResults > 0 {
+                return "Search Results (\(totalResults))"
+            } else if archivedResults > 0 && activeResults == 0 {
+                return "Archived Results (\(archivedResults))"
+            } else {
+                return "Search Results (\(activeResults))"
+            }
+        }
+        return showArchivedItems ? "Archived Items" : "Items"
     }
     
     // MARK: - Sort Functions

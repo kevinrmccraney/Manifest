@@ -13,14 +13,27 @@ struct FilePreviewView: UIViewControllerRepresentable {
     let fileAttachment: FileAttachment
     @Environment(\.dismiss) private var dismiss
     
-    func makeUIViewController(context: Context) -> QLPreviewController {
-        let controller = QLPreviewController()
-        controller.dataSource = context.coordinator
-        controller.delegate = context.coordinator
-        return controller
+    func makeUIViewController(context: Context) -> UINavigationController {
+        let previewController = QLPreviewController()
+        previewController.dataSource = context.coordinator
+        previewController.delegate = context.coordinator
+        
+        // Create navigation controller to wrap the preview controller
+        let navigationController = UINavigationController(rootViewController: previewController)
+        
+        // Set up the navigation bar
+        previewController.navigationItem.title = fileAttachment.filename
+        previewController.navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Done",
+            style: .done,
+            target: context.coordinator,
+            action: #selector(context.coordinator.dismissPreview)
+        )
+        
+        return navigationController
     }
     
-    func updateUIViewController(_ uiViewController: QLPreviewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {}
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -38,6 +51,10 @@ struct FilePreviewView: UIViewControllerRepresentable {
         
         deinit {
             cleanupTempFile()
+        }
+        
+        @objc func dismissPreview() {
+            parent.dismiss()
         }
         
         private func createTempFile() {

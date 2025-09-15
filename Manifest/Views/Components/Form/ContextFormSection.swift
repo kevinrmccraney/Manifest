@@ -17,13 +17,20 @@ struct ContextFormSection: View {
                 isExpanded: $showingContextOptions,
                 content: {
                     VStack(spacing: 12) {
-                        Toggle(isOn: $contextFlags.isFragile) {
+                        Button(action: {
+                            contextFlags.isFragile.toggle()
+                        }) {
                             HStack {
+                                Image(systemName: contextFlags.isFragile ? "checkmark.circle.fill" : "circle")
+                                    .foregroundStyle(contextFlags.isFragile ? .blue : .secondary)
+                                    .font(.title3)
+                                
                                 ContextBadgeView(type: .fragile, size: .medium)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Fragile")
                                         .font(.body)
+                                        .foregroundStyle(.primary)
                                     Text("Handle with care")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -32,15 +39,23 @@ struct ContextFormSection: View {
                                 Spacer()
                             }
                         }
+                        .buttonStyle(PlainButtonStyle())
                         .padding(.vertical, 4)
                         
-                        Toggle(isOn: $contextFlags.isHeavy) {
+                        Button(action: {
+                            contextFlags.isHeavy.toggle()
+                        }) {
                             HStack {
+                                Image(systemName: contextFlags.isHeavy ? "checkmark.circle.fill" : "circle")
+                                    .foregroundStyle(contextFlags.isHeavy ? .blue : .secondary)
+                                    .font(.title3)
+                                
                                 ContextBadgeView(type: .heavy, size: .medium)
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Heavy")
                                         .font(.body)
+                                        .foregroundStyle(.primary)
                                     Text("Use caution when lifting")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -49,6 +64,7 @@ struct ContextFormSection: View {
                                 Spacer()
                             }
                         }
+                        .buttonStyle(PlainButtonStyle())
                         .padding(.vertical, 4)
                         
                         if contextFlags.hasAnyFlags {
@@ -78,7 +94,7 @@ struct ContextFormSection: View {
                             .foregroundStyle(.orange)
                             .frame(width: 24, height: 24)
                         
-                        Text("Special Handling").textCase(.uppercase)
+                        Text("Special Handling")
                         
                         Spacer()
                         

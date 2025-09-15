@@ -37,6 +37,27 @@ struct SettingsView: View {
                     )
                 }
                 
+                // Search Settings Section
+                Section(header: Text("Search")) {
+                    SimpleToggle(
+                        isOn: $settings.globalSearch,
+                        icon: "magnifyingglass.circle",
+                        labelText: "Global Search"
+                    )
+                    
+                    if !settings.globalSearch {
+                        HStack {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(.blue)
+                                .frame(width: 24, height: 24)
+                            Text("Search will only include items from the current view (active or archived)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.leading, 8)
+                    }
+                }
+                
                 Section(header: Text("Sorting")) {
                     SimpleToggle(
                         isOn: $settings.showSortPicker,
