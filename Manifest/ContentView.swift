@@ -36,12 +36,12 @@ struct ContentView: View {
     
     var activeItems: [Item] {
         let filtered = allItems.filter { !$0.isArchived }
-        return applySorting(to: filtered)
+        return applySortingWithPins(to: filtered)
     }
     
     var archivedItems: [Item] {
         let filtered = allItems.filter { $0.isArchived }
-        return applySorting(to: filtered)
+        return applySortingWithPins(to: filtered)
     }
     
     var currentItems: [Item] {
@@ -52,13 +52,23 @@ struct ContentView: View {
         if searchText.isEmpty {
             return currentItems
         } else {
-            // Search across ALL items, not just current view mode
-            let allFilteredItems = allItems.filter { item in
+            let itemsToSearch: [Item]
+            
+            if globalSearch {
+                // Search across ALL items when global search is enabled
+                itemsToSearch = allItems
+            } else {
+                // Search only within current view mode (active or archived)
+                itemsToSearch = currentItems
+            }
+            
+            let searchResults = itemsToSearch.filter { item in
                 item.name.localizedCaseInsensitiveContains(searchText) ||
                 item.itemDescription.localizedCaseInsensitiveContains(searchText) ||
                 item.tags.contains { $0.localizedCaseInsensitiveContains(searchText) }
             }
-            return applySorting(to: allFilteredItems)
+            
+            return applySortingWithPins(to: searchResults)
         }
     }
     
@@ -333,6 +343,19 @@ struct ContentView: View {
         case .frequentlyViewed:
             return [SortDescriptor(\Item.viewCount, order: .reverse)]
         }
+    }
+    
+    private func applySortingWithPins(to items: [Item]) -> [Item] {
+        // First, separate pinned and unpinned items
+        let pinnedItems = items.filter { $0.isPinned }
+        let unpinnedItems = items.filter { !$0.isPinned }
+        
+        // Apply sorting to both groups
+        let sortedPinned = applySorting(to: pinnedItems)
+        let sortedUnpinned = applySorting(to: unpinnedItems)
+        
+        // Return pinned items first, then unpinned items
+        return sortedPinned + sortedUnpinned
     }
     
     private func applySorting(to items: [Item]) -> [Item] {

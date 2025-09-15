@@ -33,6 +33,22 @@ struct ItemDetailView: View {
                     .cornerRadius(8)
                 }
                 
+                // Pin status indicator
+                if item.isPinned {
+                    HStack {
+                        Image(systemName: "pin.fill")
+                            .rotationEffect(.degrees(45))
+                        Text("This item is pinned")
+                        Spacer()
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(.blue)
+                    .cornerRadius(8)
+                }
+                
                 // Large image
                 ImageDisplaySection(item: item)
                 
@@ -85,6 +101,13 @@ struct ItemDetailView: View {
             AddEditItemView(item: item)
         }
         .confirmationDialog("Item Actions", isPresented: $showingActionSheet) {
+            // Pin/Unpin option
+            Button(item.isPinned ? "Unpin" : "Pin") {
+                withAnimation {
+                    item.togglePin()
+                }
+            }
+            
             // Only show Edit button if item is not archived
             if !item.isArchived {
                 Button("Edit") {

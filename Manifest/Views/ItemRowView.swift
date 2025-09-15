@@ -19,6 +19,15 @@ struct BandedItemRowView: View {
     
     var body: some View {
         HStack {
+            // Pin indicator - positioned to the left of the thumbnail
+            if item.isPinned {
+                Image(systemName: "pin.fill")
+                    .font(.caption)
+                    .foregroundStyle(.blue)
+                    .rotationEffect(.degrees(45))
+                    .padding(.trailing, 4)
+            }
+            
             // Thumbnail
             if let image = item.thumbnailImage {
                 Image(uiImage: image)
@@ -75,20 +84,8 @@ struct BandedItemRowView: View {
             
             Spacer()
             
-            // Context badges and file attachment indicator
+            // File attachment and context badges indicator
             VStack(spacing: 4) {
-                // Context badges
-                if item.contextFlags.hasAnyFlags {
-                    HStack(spacing: 2) {
-                        if item.contextFlags.isFragile {
-                            ContextBadgeView(type: .fragile, size: .small)
-                        }
-                        if item.contextFlags.isHeavy {
-                            ContextBadgeView(type: .heavy, size: .small)
-                        }
-                    }
-                }
-                
                 // File attachment indicator with count - only show if setting is enabled
                 if item.hasAnyAttachment && showAttachmentIcons {
                     HStack(spacing: 2) {
@@ -101,6 +98,18 @@ struct BandedItemRowView: View {
                             Text("\(totalAttachments)")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                
+                // Context badges
+                if item.contextFlags.hasAnyFlags {
+                    HStack(spacing: 2) {
+                        if item.contextFlags.isFragile {
+                            ContextBadgeView(type: .fragile, size: .small)
+                        }
+                        if item.contextFlags.isHeavy {
+                            ContextBadgeView(type: .heavy, size: .small)
                         }
                     }
                 }

@@ -20,7 +20,8 @@ final class Item {
     @Attribute(.externalStorage) var thumbnailData: Data?
     var customFields: Data?
     var tags: [String]
-    var isArchived: Bool = false // New archive flag
+    var isArchived: Bool = false // Archive flag
+    var isPinned: Bool = false // Pin flag
     var emojiPlaceholder: String? // Optional emoji placeholder for this item
     var itemContext: Data? // Store context flags (fragile, heavy, etc.)
     
@@ -50,7 +51,7 @@ final class Item {
     var attachmentFilename: String?
     var attachmentDescription: String?
     
-    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], attachmentData: Data? = nil, attachmentFilename: String? = nil, attachmentDescription: String? = nil, isArchived: Bool = false, emojiPlaceholder: String? = nil, itemContext: Data? = nil) {
+    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], attachmentData: Data? = nil, attachmentFilename: String? = nil, attachmentDescription: String? = nil, isArchived: Bool = false, isPinned: Bool = false, emojiPlaceholder: String? = nil, itemContext: Data? = nil) {
         self.id = UUID()
         self.name = name
         self.itemDescription = itemDescription
@@ -66,6 +67,7 @@ final class Item {
         self.attachmentDescription = attachmentDescription
         self.attachments = []
         self.isArchived = isArchived
+        self.isPinned = isPinned
         self.emojiPlaceholder = emojiPlaceholder
         self.itemContext = itemContext
     }
@@ -91,6 +93,22 @@ final class Item {
         updateTimestamp()
     }
     
+    // Pin/Unpin methods
+    func pin() {
+        isPinned = true
+        updateTimestamp()
+    }
+    
+    func unpin() {
+        isPinned = false
+        updateTimestamp()
+    }
+    
+    func togglePin() {
+        isPinned.toggle()
+        updateTimestamp()
+    }
+    
     // MARK: - Computed Properties
     var thumbnailImage: UIImage? {
         guard let data = thumbnailData else { return nil }
@@ -100,7 +118,6 @@ final class Item {
     // Get the emoji placeholder for this item, falling back to app default
     var effectiveEmojiPlaceholder: String {
         let result = emojiPlaceholder ?? AppSettings.shared.defaultEmojiPlaceholder
-        //print("Getting effective emoji placeholder: \(result) (item emoji: \(String(describing: emojiPlaceholder)), default: \(AppSettings.shared.defaultEmojiPlaceholder))")
         return result
     }
     

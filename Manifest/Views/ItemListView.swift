@@ -56,6 +56,14 @@ struct BandedItemListView: View {
                         }
                     }
                     .swipeActions(edge: .leading) {
+                        // Pin/Unpin action on right swipe
+                        Button(item.isPinned ? "Unpin" : "Pin") {
+                            withAnimation {
+                                item.togglePin()
+                            }
+                        }
+                        .tint(item.isPinned ? .gray : .purple)
+                        
                         // Archive action on right swipe
                         if isShowingArchived {
                             Button("Unarchive") {
@@ -63,14 +71,14 @@ struct BandedItemListView: View {
                                     item.unarchive()
                                 }
                             }
-                            .tint(.orange)
+                            .tint(.blue)
                         } else {
                             Button("Archive") {
                                 withAnimation {
                                     item.archive()
                                 }
                             }
-                            .tint(.orange)
+                            .tint(.blue)
                         }
                     }
                     .contextMenu {
@@ -107,6 +115,13 @@ struct BandedItemListView: View {
     
     @ViewBuilder
     private func contextMenuItems(for item: Item) -> some View {
+        // Pin/Unpin option
+        Button(item.isPinned ? "Unpin" : "Pin") {
+            withAnimation {
+                item.togglePin()
+            }
+        }
+        
         // Only show Edit button if item is not archived
         if !item.isArchived {
             Button("Edit") {

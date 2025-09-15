@@ -15,6 +15,8 @@ struct GridView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var itemToDelete: Item?
     @State private var showingDeleteAlert = false
+    @State private var itemForActionSheet: Item?
+    @State private var showingItemActionSheet = false
     
     private let columns = [
         GridItem(.adaptive(minimum: 160), spacing: 16)
@@ -28,29 +30,50 @@ struct GridView: View {
                         ThemedGridItemView(item: item, showAttachmentIcons: showAttachmentIcons)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .simultaneousGesture(TapGesture().onEnded {
+                        item.recordView()
+                    })
+                    .onLongPressGesture {
+                        itemForActionSheet = item
+                        showingItemActionSheet = true
+                    }
                     .contextMenu {
-                        if isShowingArchived {
-                            Button("Unarchive") {
-                                withAnimation {
-                                    item.unarchive()
-                                }
-                            }
-                        } else {
-                            Button("Archive") {
-                                withAnimation {
-                                    item.archive()
-                                }
-                            }
-                        }
-                        
-                        Button("Delete", role: .destructive) {
-                            itemToDelete = item
-                            showingDeleteAlert = true
-                        }
+                        contextMenuItems(for: item)
                     }
                 }
             }
             .padding()
+        }
+        .confirmationDialog("Item Actions", isPresented: $showingItemActionSheet) {
+            if let item = itemForActionSheet {
+                // Pin/Unpin option
+                Button(item.isPinned ? "Unpin" : "Pin") {
+                    withAnimation {
+                        item.togglePin()
+                    }
+                }
+                
+                if isShowingArchived {
+                    Button("Unarchive") {
+                        withAnimation {
+                            item.unarchive()
+                        }
+                    }
+                } else {
+                    Button("Archive") {
+                        withAnimation {
+                            item.archive()
+                        }
+                    }
+                }
+                
+                Button("Delete", role: .destructive) {
+                    itemToDelete = item
+                    showingDeleteAlert = true
+                }
+                
+                Button("Cancel", role: .cancel) { }
+            }
         }
         .alert("Delete Item", isPresented: $showingDeleteAlert) {
             Button("Cancel", role: .cancel) { }
@@ -64,10 +87,40 @@ struct GridView: View {
         }
     }
     
+    @ViewBuilder
+    private func contextMenuItems(for item: Item) -> some View {
+        // Pin/Unpin option
+        Button(item.isPinned ? "Unpin" : "Pin") {
+            withAnimation {
+                item.togglePin()
+            }
+        }
+        
+        if isShowingArchived {
+            Button("Unarchive") {
+                withAnimation {
+                    item.unarchive()
+                }
+            }
+        } else {
+            Button("Archive") {
+                withAnimation {
+                    item.archive()
+                }
+            }
+        }
+        
+        Button("Delete", role: .destructive) {
+            itemToDelete = item
+            showingDeleteAlert = true
+        }
+    }
+    
     private func deleteItem(_ item: Item) {
         withAnimation {
             modelContext.delete(item)
         }
         itemToDelete = nil
+        itemForActionSheet = nil
     }
 }

@@ -33,21 +33,60 @@ struct ThemedGridItemView: View {
                         )
                 }
                 
-                // Overlay container for both context badges and attachment icons
-                if (item.contextFlags.hasAnyFlags || (item.hasAnyAttachment && showAttachmentIcons)) {
-                    VStack {
+                // Overlay container with pin at top left, file icon at top right, context badges at bottom right
+                VStack {
+                    // Top row: Pin indicator and file attachment icon
+                    HStack {
+                        if item.isPinned {
+                            Image(systemName: "pin.fill")
+                                .font(.caption)
+                                .foregroundStyle(.white)
+                                .padding(4)
+                                .background(Color.blue)
+                                .clipShape(Circle())
+                                .rotationEffect(.degrees(45))
+                        }
+                        
+                        Spacer()
+                        
+                        // File attachment indicator at top right
+                        if item.hasAnyAttachment && showAttachmentIcons {
+                            HStack(spacing: 2) {
+                                Image(systemName: "doc.fill")
+                                    .foregroundStyle(.white)
+                                    .font(.caption)
+                                
+                                let totalAttachments = item.attachments.count + (item.attachmentData != nil ? 1 : 0)
+                                if totalAttachments > 1 {
+                                    Text("\(totalAttachments)")
+                                        .font(.caption2)
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                            .padding(4)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(4)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Bottom row: Context badges only
+                    if item.contextFlags.hasAnyFlags {
                         HStack {
                             Spacer()
-                            ContextOverlay(
-                                contextFlags: item.contextFlags,
-                                showAttachmentIcons: showAttachmentIcons,
-                                attachmentCount: item.attachments.count + (item.attachmentData != nil ? 1 : 0)
-                            )
+                            HStack(spacing: 2) {
+                                if item.contextFlags.isFragile {
+                                    ContextBadgeView(type: .fragile, size: .large)
+                                }
+                                if item.contextFlags.isHeavy {
+                                    ContextBadgeView(type: .heavy, size: .large)
+                                }
+                            }
                         }
-                        Spacer()
                     }
-                    .padding(8)
                 }
+                .padding(8)
             }
             
             // Content area - fixed height container

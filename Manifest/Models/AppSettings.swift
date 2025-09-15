@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 // Sort options enum
 enum SortOption: String, CaseIterable {
