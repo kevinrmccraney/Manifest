@@ -20,69 +20,120 @@ struct FileAttachmentRow: View {
         attachment.filename.hasPrefix("QR_Code_") && attachment.filename.hasSuffix(".png")
     }
     
+    private var fileTypeColor: Color {
+        switch attachment.fileType {
+        case .image: return .green
+        case .video: return .blue
+        case .audio: return .purple
+        case .document: return .orange
+        case .other: return .gray
+        }
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: attachment.fileIcon)
-                    .foregroundStyle(.blue)
-                    .font(.title2)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                // File type icon with color coding
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(fileTypeColor.opacity(0.2))
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: attachment.fileIcon)
+                        .foregroundStyle(fileTypeColor)
+                        .font(.title3)
+                        .fontWeight(.medium)
+                }
                 
-                VStack(alignment: .leading, spacing: 2) {
-                    // Make the entire description area tappable for preview with invisible "Preview" text
+                VStack(alignment: .leading, spacing: 4) {
+                    // Filename - tappable for preview
                     HStack {
                         Text(attachment.filename)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
                             .lineLimit(1)
                         
-                        Text("Preview")
-                            .font(.caption)
-                            .foregroundStyle(.clear) // Invisible text
-                        
                         Spacer()
+                        
+                        // File type badge
+                        Text(attachment.fileType.rawValue)
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(fileTypeColor.opacity(0.2))
+                            .foregroundStyle(fileTypeColor)
+                            .cornerRadius(4)
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
                         onPreview()
                     }
                     
-                    Text(attachment.formattedFileSize)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
-                
-                Spacer()
-                
-                // Chevron button for download menu
-                Button(action: {
-                    showingDownloadMenu = true
-                }) {
-                    Image(systemName: "chevron.down")
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
-                .confirmationDialog("File Options", isPresented: $showingDownloadMenu) {
-                    Button("Download") {
-                        onDownload()
+                    HStack(spacing: 8) {
+                        Text(attachment.formattedFileSize)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        Text("•")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                        
+                        Text(attachment.createdAt.formatted(date: .abbreviated, time: .omitted))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        
+                        Spacer()
+                        
+                        // Action button
+                        Menu {
+                            Button("Preview") {
+                                onPreview()
+                            }
+                            
+                            Button("Download") {
+                                onDownload()
+                            }
+                            
+                            if !isQRCode {
+                                Button("Edit Description") {
+                                    isEditingDescription = true
+                                }
+                            }
+                            
+                            Button("Delete", role: .destructive) {
+                                onDelete()
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundStyle(.secondary)
+                                .font(.subheadline)
+                        }
                     }
-                    Button("Delete", role: .destructive) {
-                        onDelete()
-                    }
-                    Button("Cancel", role: .cancel) { }
                 }
             }
             
-            HStack {
-                if isEditingDescription && !isQRCode {
+            // Description section
+            if isEditingDescription && !isQRCode {
+                HStack {
                     TextField("Description", text: $attachment.fileDescription)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit {
                             isEditingDescription = false
                         }
-                } else {
+                    
+                    Button("Done") {
+                        isEditingDescription = false
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.blue)
+                }
+            } else if !attachment.fileDescription.isEmpty && attachment.fileDescription != attachment.filename {
+                HStack {
                     Text(attachment.fileDescription)
                         .font(.caption)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.secondary)
+                        .italic()
                         .onTapGesture {
                             if !isQRCode {
                                 isEditingDescription = true
@@ -103,6 +154,6 @@ struct FileAttachmentRow: View {
         }
         .padding()
         .background(Color(.systemGray6))
-        .cornerRadius(8)
+        .cornerRadius(12)
     }
 }

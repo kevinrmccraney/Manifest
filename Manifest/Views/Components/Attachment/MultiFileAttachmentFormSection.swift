@@ -8,11 +8,17 @@
 import SwiftUI
 import QuickLook
 import UniformTypeIdentifiers
+import PhotosUI
 
 struct MultiFileAttachmentFormSection: View {
     @Binding var attachments: [FileAttachment]
     @State private var selectedFiles: [URL] = []
+    @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var showingDocumentPicker = false
+    @State private var showingPhotosPicker = false
+    @State private var showingCamera = false
+    @State private var showingImageSourceActionSheet = false
+    @State private var capturedImage: UIImage?
     @State private var previewAttachment: FileAttachment?
     @State private var shareURL: URL?
     
@@ -21,15 +27,22 @@ struct MultiFileAttachmentFormSection: View {
             Text("File Attachments")
             .textCase(.uppercase)
             Spacer()
-            Button("Add Files") {
-                print("Add Files button tapped")
-                showingDocumentPicker = true
+            Menu("Add Files") {
+                Button("Files") {
+                    showingDocumentPicker = true
+                }
+                Button("Photos") {
+                    showingPhotosPicker = true
+                }
+                Button("Camera") {
+                    showingCamera = true
+                }
             }
             .font(.caption)
         }) {
             if attachments.isEmpty {
                 Text("No files attached")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .font(.caption)
             } else {
                 ForEach(attachments, id: \.id) { attachment in
@@ -56,6 +69,18 @@ struct MultiFileAttachmentFormSection: View {
                 selectedFiles = [] // Reset after processing
             }
         }
+        .onChange(of: selectedPhotos) { _, newPhotos in
+            if !newPhotos.isEmpty {
+                processSelectedPhotos(newPhotos)
+                selectedPhotos = [] // Reset after processing
+            }
+        }
+        .onChange(of: capturedImage) { _, newImage in
+            if let image = newImage {
+                processCapturedImage(image)
+                capturedImage = nil // Reset after processing
+            }
+        }
         .background(
             DocumentPickerWrapper(
                 isPresented: $showingDocumentPicker,
@@ -72,6 +97,15 @@ struct MultiFileAttachmentFormSection: View {
                 url: $shareURL
             )
         )
+        .photosPicker(
+            isPresented: $showingPhotosPicker,
+            selection: $selectedPhotos,
+            maxSelectionCount: 10, // Allow up to 10 photos at once
+            matching: .images
+        )
+        .sheet(isPresented: $showingCamera) {
+            ImagePicker(selectedImage: $capturedImage, sourceType: .camera)
+        }
     }
     
     private func processSelectedFiles(_ urls: [URL]) {
@@ -103,6 +137,64 @@ struct MultiFileAttachmentFormSection: View {
         print("Final attachment count after processing: \(attachments.count)")
     }
     
+    private func processSelectedPhotos(_ photos: [PhotosPickerItem]) {
+        print("Processing \(photos.count) selected photos")
+        
+        for photo in photos {
+            Task {
+                if let data = try? await photo.loadTransferable(type: Data.self) {
+                    // Generate a filename with timestamp
+                    let timestamp = DateFormatter().apply {
+                        $0.dateFormat = "yyyyMMdd_HHmmss"
+                    }.string(from: Date())
+                    
+                    let filename: String
+                    if let identifier = photo.itemIdentifier {
+                        // Try to extract original filename or create one
+                        filename = "Photo_\(timestamp).jpg"
+                    } else {
+                        filename = "Photo_\(timestamp).jpg"
+                    }
+                    
+                    await MainActor.run {
+                        let attachment = FileAttachment(
+                            filename: filename,
+                            fileDescription: filename,
+                            fileData: data,
+                            mimeType: "image/jpeg"
+                        )
+                        
+                        attachments.append(attachment)
+                        print("Successfully added photo: \(filename), total attachments: \(attachments.count)")
+                    }
+                }
+            }
+        }
+    }
+    
+    private func processCapturedImage(_ image: UIImage) {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            print("Error converting captured image to data")
+            return
+        }
+        
+        let timestamp = DateFormatter().apply {
+            $0.dateFormat = "yyyyMMdd_HHmmss"
+        }.string(from: Date())
+        
+        let filename = "Camera_\(timestamp).jpg"
+        
+        let attachment = FileAttachment(
+            filename: filename,
+            fileDescription: filename,
+            fileData: imageData,
+            mimeType: "image/jpeg"
+        )
+        
+        attachments.append(attachment)
+        print("Successfully added captured image: \(filename), total attachments: \(attachments.count)")
+    }
+    
     private func downloadFile(_ attachment: FileAttachment) {
         let tempDir = FileManager.default.temporaryDirectory
         let tempFileURL = tempDir.appendingPathComponent(attachment.filename)
@@ -128,6 +220,7 @@ struct MultiFileAttachmentFormSection: View {
         case "jpg", "jpeg": return "image/jpeg"
         case "png": return "image/png"
         case "gif": return "image/gif"
+        case "heic": return "image/heic"
         case "mp4": return "video/mp4"
         case "mov": return "video/quicktime"
         case "mp3": return "audio/mpeg"
@@ -135,6 +228,14 @@ struct MultiFileAttachmentFormSection: View {
         case "zip": return "application/zip"
         default: return "application/octet-stream"
         }
+    }
+}
+
+// Extension to make DateFormatter configuration more readable
+extension DateFormatter {
+    func apply(closure: (DateFormatter) -> Void) -> DateFormatter {
+        closure(self)
+        return self
     }
 }
 

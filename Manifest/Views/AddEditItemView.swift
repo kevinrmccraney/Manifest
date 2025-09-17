@@ -87,6 +87,7 @@ struct AddEditItemView: View {
                         newTag: $newTag
                     )
                     
+                    // Keep the legacy thumbnail image section for the main item thumbnail
                     ImageFormSection(
                         selectedImage: $selectedImage,
                         selectedEmoji: $selectedEmoji,
@@ -95,6 +96,7 @@ struct AddEditItemView: View {
                     
                     ContextFormSection(contextFlags: $contextFlags)
                     
+                    // Enhanced multi-file attachment section that supports images, files, and camera
                     MultiFileAttachmentFormSection(attachments: $attachments)
                     
                     if enabledQRScanning || enabledNFCScanning {
