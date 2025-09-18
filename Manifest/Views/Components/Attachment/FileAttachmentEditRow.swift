@@ -1,5 +1,13 @@
 //
-//  FileAttachmentInlineRow.swift
+//  FileAttachmentEditRow.swift
+//  Manifest
+//
+//  Created by Kevin McCraney on 2025-09-17.
+//
+
+
+//
+//  FileAttachmentEditRow.swift
 //  Manifest
 //
 //  Created by Kevin McCraney on 2025-09-17.
@@ -7,7 +15,7 @@
 
 import SwiftUI
 
-struct FileAttachmentInlineRow: View {
+struct FileAttachmentEditRow: View {
     @Bindable var attachment: FileAttachment
     let onDownload: () -> Void
     let onDelete: () -> Void
@@ -44,7 +52,7 @@ struct FileAttachmentInlineRow: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    // Filename - will be tappable via NavigationLink wrapper
+                    // Filename - not tappable in edit mode
                     HStack {
                         Text(attachment.filename)
                             .font(.subheadline)
@@ -79,7 +87,7 @@ struct FileAttachmentInlineRow: View {
                         
                         Spacer()
                         
-                        // Action button
+                        // Action button - only download, edit description, and delete
                         Menu {
                             Button("Download") {
                                 onDownload()
@@ -99,7 +107,6 @@ struct FileAttachmentInlineRow: View {
                                 .foregroundStyle(.secondary)
                                 .font(.subheadline)
                         }
-                        .buttonStyle(BorderlessButtonStyle()) // Prevent NavigationLink from capturing this tap
                     }
                 }
             }
@@ -139,7 +146,6 @@ struct FileAttachmentInlineRow: View {
                         }
                         .font(.caption2)
                         .foregroundStyle(.blue)
-                        .buttonStyle(BorderlessButtonStyle())
                     }
                 }
             }

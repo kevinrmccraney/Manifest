@@ -97,7 +97,7 @@ struct AddEditItemView: View {
                     ContextFormSection(contextFlags: $contextFlags)
                     
                     // Enhanced multi-file attachment section that supports images, files, and camera
-                    MultiFileAttachmentFormSection(attachments: $attachments)
+                    FileAttachmentSection(attachments: $attachments)
                     
                     if enabledQRScanning || enabledNFCScanning {
                         // Physical Storage Section (combines QR Code and NFC)
@@ -210,17 +210,19 @@ struct AddEditItemView: View {
             existingItem.setEmojiPlaceholder(selectedEmoji)
             existingItem.contextFlags = contextFlags
             
-            // Update attachments - first remove all existing ones from the context
-            for oldAttachment in existingItem.attachments {
-                modelContext.delete(oldAttachment)
+            // Sync attachments more carefully
+            // Remove attachments that are no longer in our state
+            existingItem.attachments.removeAll { existingAttachment in
+                !attachments.contains { $0.id == existingAttachment.id }
             }
-            existingItem.attachments.removeAll()
             
-            // Add new attachments
+            // Add new attachments that aren't already in the item
             for attachment in attachments {
-                attachment.item = existingItem
-                modelContext.insert(attachment)
-                existingItem.attachments.append(attachment)
+                if !existingItem.attachments.contains(where: { $0.id == attachment.id }) {
+                    attachment.item = existingItem
+                    modelContext.insert(attachment)
+                    existingItem.attachments.append(attachment)
+                }
             }
         } else {
             // Create new item with the pre-generated UUID
