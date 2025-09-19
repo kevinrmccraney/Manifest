@@ -26,6 +26,7 @@ struct AddEditItemView: View {
     @State private var attachments: [FileAttachment] = []
     @State private var itemID: UUID = UUID() // Create UUID immediately
     @State private var contextFlags: ItemContextFlags = ItemContextFlags()
+    @State private var tempItem: Item? // Add this to hold the temporary item for new items
     
     @State private var enabledNFCScanning = AppSettings.shared.enableNFC
     @State private var enabledQRScanning = AppSettings.shared.enableQR
@@ -40,6 +41,23 @@ struct AddEditItemView: View {
     
     let item: Item?
     
+    // Create a persistent item for thumbnail selection
+    private var editableItem: Item {
+        if let existingItem = item {
+            return existingItem
+        } else {
+            // Return the temp item if it exists, otherwise create it
+            if let tempItem = tempItem {
+                return tempItem
+            } else {
+                // This shouldn't happen, but create a fallback
+                let fallbackItem = Item(name: name.isEmpty ? "New Item" : name)
+                fallbackItem.id = itemID
+                return fallbackItem
+            }
+        }
+    }
+    
     init(item: Item? = nil) {
         self.item = item
         if let item = item {
@@ -52,6 +70,9 @@ struct AddEditItemView: View {
             _attachmentDescription = State(initialValue: item.attachmentDescription ?? item.attachmentFilename ?? "")
             _itemID = State(initialValue: item.id) // Use existing ID for editing
             _contextFlags = State(initialValue: item.contextFlags)
+            _tempItem = State(initialValue: nil) // Existing items don't need a temp item
+        } else {
+            _tempItem = State(initialValue: nil) // Will be created lazily
         }
         // For new items, itemID is already initialized with UUID()
     }
@@ -97,7 +118,23 @@ struct AddEditItemView: View {
                     ContextFormSection(contextFlags: $contextFlags)
                     
                     // Enhanced multi-file attachment section that supports images, files, and camera
-                    FileAttachmentSection(attachments: $attachments)
+                    // Pass the editable item so thumbnail selection works
+                    FileAttachmentSection(
+                        attachments: $attachments,
+                        item: editableItem,
+                        onThumbnailSelected: { selectedThumbnailImage in
+                            // Handle thumbnail selection callback
+                            selectedImage = selectedThumbnailImage
+                            if item == nil {
+                                tempItem?.setThumbnailImage(selectedThumbnailImage)
+                            } else {
+                                item?.setThumbnailImage(selectedThumbnailImage)
+                            }
+                        }
+                    )
+                    .onChange(of: attachments) { _, _ in
+                        updateTempItemAttachments()
+                    }
                     
                     if enabledQRScanning || enabledNFCScanning {
                         // Physical Storage Section (combines QR Code and NFC)
@@ -131,6 +168,9 @@ struct AddEditItemView: View {
                         }
                     }
                 }
+            }
+            .onAppear {
+                initializeTempItemIfNeeded()
             }
             .navigationTitle(item == nil ? "Add Item" : "Edit Item")
             .navigationBarTitleDisplayMode(.inline)
@@ -187,6 +227,27 @@ struct AddEditItemView: View {
                     print("Error selecting file: \(error)")
                 }
             }
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    // Initialize the temporary item when the view appears
+    private func initializeTempItemIfNeeded() {
+        if item == nil && tempItem == nil {
+            let newTempItem = Item(name: name.isEmpty ? "New Item" : name)
+            newTempItem.id = itemID
+            newTempItem.setThumbnailImage(selectedImage)
+            newTempItem.setEmojiPlaceholder(selectedEmoji)
+            newTempItem.attachments = attachments
+            tempItem = newTempItem
+        }
+    }
+    
+    // Update temp item attachments when the attachments array changes
+    private func updateTempItemAttachments() {
+        if item == nil {
+            tempItem?.attachments = attachments
         }
     }
     

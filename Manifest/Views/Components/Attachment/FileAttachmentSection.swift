@@ -9,14 +9,30 @@ import SwiftUI
 
 struct FileAttachmentSection: View {
     @Binding var attachments: [FileAttachment]
+    @Bindable var item: Item
     @StateObject private var fileManager = FileAttachmentManager()
+    let onThumbnailSelected: ((UIImage?) -> Void)?
+    
+    private var hasImageAttachments: Bool {
+        attachments.contains { $0.isImage }
+    }
     
     var body: some View {
         Section(header: HStack {
             Text("File Attachments")
                 .textCase(.uppercase)
             Spacer()
-            FileAttachmentMenu(fileManager: fileManager)
+            HStack(spacing: 12) {
+                if hasImageAttachments, let onThumbnailSelected = onThumbnailSelected {
+                    NavigationLink(destination: ThumbnailSelectionView(item: item, onSelectionMade: onThumbnailSelected)) {
+                        Text("Set Thumbnail")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                FileAttachmentMenu(fileManager: fileManager)
+            }
         }) {
             if attachments.isEmpty {
                 Text("No files attached")
@@ -26,6 +42,7 @@ struct FileAttachmentSection: View {
                 ForEach(attachments, id: \.id) { attachment in
                     FileAttachmentEditRow(
                         attachment: attachment,
+                        attachments: attachments,
                         onDownload: {
                             fileManager.downloadFile(attachment)
                         },

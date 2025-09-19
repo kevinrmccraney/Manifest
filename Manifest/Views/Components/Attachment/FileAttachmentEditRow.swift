@@ -5,21 +5,20 @@
 //  Created by Kevin McCraney on 2025-09-17.
 //
 
-
-//
-//  FileAttachmentEditRow.swift
-//  Manifest
-//
-//  Created by Kevin McCraney on 2025-09-17.
-//
-
 import SwiftUI
 
 struct FileAttachmentEditRow: View {
     @Bindable var attachment: FileAttachment
+    let attachments: [FileAttachment]
     let onDownload: () -> Void
     let onDelete: () -> Void
     @State private var isEditingDescription = false
+    @State private var showingPreview = false
+    
+    // Find the index of this attachment in the full list
+    private var attachmentIndex: Int {
+        attachments.firstIndex(where: { $0.id == attachment.id }) ?? 0
+    }
     
     // Check if this is a QR code file
     private var isQRCode: Bool {
@@ -39,26 +38,34 @@ struct FileAttachmentEditRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
-                // File type icon with color coding
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(fileTypeColor.opacity(0.2))
-                        .frame(width: 44, height: 44)
-                    
-                    Image(systemName: attachment.fileIcon)
-                        .foregroundStyle(fileTypeColor)
-                        .font(.title3)
-                        .fontWeight(.medium)
+                // File type icon with color coding - make it tappable for preview
+                Button(action: {
+                    showingPreview = true
+                }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(fileTypeColor.opacity(0.2))
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: attachment.fileIcon)
+                            .foregroundStyle(fileTypeColor)
+                            .font(.title3)
+                            .fontWeight(.medium)
+                    }
                 }
+                .buttonStyle(PlainButtonStyle())
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    // Filename - not tappable in edit mode
+                    // Filename - also tappable for preview
                     HStack {
-                        Text(attachment.filename)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
+                        Button(attachment.filename) {
+                            showingPreview = true
+                        }
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .buttonStyle(PlainButtonStyle())
                         
                         Spacer()
                         
@@ -153,5 +160,8 @@ struct FileAttachmentEditRow: View {
         .padding()
         .background(Color(.systemGray6))
         .cornerRadius(12)
+        .sheet(isPresented: $showingPreview) {
+            MultiFilePreviewView(attachments: attachments, initialIndex: attachmentIndex)
+        }
     }
 }

@@ -9,12 +9,31 @@ import SwiftUI
 
 struct FileAttachmentDisplaySection: View {
     let item: Item
-    @State private var previewAttachment: FileAttachment?
     @State private var showingPreview = false
+    @State private var previewStartIndex = 0
     @State private var showingShareSheet = false
     @State private var shareURL: URL?
     @State private var showingDownloadMenu = false
     @State private var selectedAttachment: FileAttachment?
+    
+    // Combined attachments for preview (new attachments + legacy if exists)
+    private var allAttachments: [FileAttachment] {
+        var attachments = item.attachments
+        
+        // Add legacy attachment if it exists
+        if let legacyData = item.attachmentData,
+           let legacyFilename = item.attachmentFilename {
+            let legacyAttachment = FileAttachment(
+                filename: legacyFilename,
+                fileDescription: item.attachmentDescription ?? legacyFilename,
+                fileData: legacyData,
+                mimeType: "application/octet-stream"
+            )
+            attachments.append(legacyAttachment)
+        }
+        
+        return attachments
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -26,7 +45,7 @@ struct FileAttachmentDisplaySection: View {
             
             // New multi-file attachments
             if !item.attachments.isEmpty {
-                ForEach(item.attachments, id: \.id) { attachment in
+                ForEach(Array(item.attachments.enumerated()), id: \.element.id) { index, attachment in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Image(systemName: attachment.fileIcon)
@@ -49,7 +68,7 @@ struct FileAttachmentDisplaySection: View {
                                 }
                                 .contentShape(Rectangle())
                                 .onTapGesture {
-                                    previewAttachment = attachment
+                                    previewStartIndex = index
                                     showingPreview = true
                                 }
                                 
@@ -101,7 +120,8 @@ struct FileAttachmentDisplaySection: View {
                             }
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                previewLegacyAttachment()
+                                previewStartIndex = item.attachments.count // Legacy attachment comes after new ones
+                                showingPreview = true
                             }
                             
                             if let data = item.attachmentData {
@@ -129,9 +149,7 @@ struct FileAttachmentDisplaySection: View {
             }
         }
         .sheet(isPresented: $showingPreview) {
-            if let attachment = previewAttachment {
-                FilePreviewView(fileAttachment: attachment)
-            }
+            MultiFilePreviewView(attachments: allAttachments, initialIndex: previewStartIndex)
         }
         .sheet(isPresented: $showingShareSheet) {
             if let url = shareURL {
@@ -145,20 +163,6 @@ struct FileAttachmentDisplaySection: View {
                 }
             }
             Button("Cancel", role: .cancel) { }
-        }
-    }
-    
-    private func previewLegacyAttachment() {
-        if let data = item.attachmentData,
-           let filename = item.attachmentFilename {
-            let tempAttachment = FileAttachment(
-                filename: filename,
-                fileDescription: item.attachmentDescription ?? filename,
-                fileData: data,
-                mimeType: "application/octet-stream"
-            )
-            previewAttachment = tempAttachment
-            showingPreview = true
         }
     }
     

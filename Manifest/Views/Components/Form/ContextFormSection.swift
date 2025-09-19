@@ -145,7 +145,7 @@ struct ContextBadgeView: View {
     var badgeColor: Color {
         switch type {
         case .fragile: return .red
-        case .heavy: return .green
+        case .heavy: return .yellow
         }
     }
     
