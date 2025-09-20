@@ -48,9 +48,21 @@ struct MultiAttachmentsDisplayView: View {
                 ForEach(Array(item.attachments.enumerated()), id: \.element.id) { index, attachment in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Image(systemName: attachment.fileIcon)
-                                .foregroundStyle(.blue)
-                                .font(.title2)
+                            // Show image preview or file icon
+                            if attachment.isImage, let image = UIImage(data: attachment.fileData) {
+                                // Show actual image preview for photos
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 40, height: 40)
+                                    .clipped()
+                                    .cornerRadius(6)
+                            } else {
+                                // Show file type icon for non-images
+                                Image(systemName: attachment.fileIcon)
+                                    .foregroundStyle(.blue)
+                                    .font(.title2)
+                            }
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 // Make the entire description area tappable for preview

@@ -12,9 +12,13 @@ struct FileAttachmentSection: View {
     @Bindable var item: Item
     @StateObject private var fileManager = FileAttachmentManager()
     let onThumbnailSelected: ((UIImage?) -> Void)?
+    let onEmojiSelected: ((String?) -> Void)?
     
+    // This computed property will re-evaluate when attachments binding changes
     private var hasImageAttachments: Bool {
-        attachments.contains { $0.isImage }
+        let imageCount = attachments.filter { $0.isImage }.count
+        print("FileAttachmentSection: hasImageAttachments check - total: \(attachments.count), images: \(imageCount)")
+        return imageCount > 0
     }
     
     var body: some View {
@@ -23,14 +27,6 @@ struct FileAttachmentSection: View {
                 .textCase(.uppercase)
             Spacer()
             HStack(spacing: 12) {
-                if hasImageAttachments, let onThumbnailSelected = onThumbnailSelected {
-                    NavigationLink(destination: ThumbnailSelectionView(item: item, onSelectionMade: onThumbnailSelected)) {
-                        Text("Set Thumbnail")
-                            .font(.caption)
-                            .foregroundStyle(.blue)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
                 FileAttachmentMenu(fileManager: fileManager)
             }
         }) {
@@ -58,6 +54,7 @@ struct FileAttachmentSection: View {
                 print("Adding \(newAttachments.count) new attachments to existing \(attachments.count)")
                 attachments.append(contentsOf: newAttachments)
                 print("Total attachments after adding: \(attachments.count)")
+                print("Image attachments available: \(attachments.filter { $0.isImage }.count)")
                 fileManager.clearNewAttachments()
             }
         }

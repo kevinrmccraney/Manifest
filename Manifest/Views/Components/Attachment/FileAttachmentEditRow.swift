@@ -47,10 +47,21 @@ struct FileAttachmentEditRow: View {
                             .fill(fileTypeColor.opacity(0.2))
                             .frame(width: 44, height: 44)
                         
-                        Image(systemName: attachment.fileIcon)
-                            .foregroundStyle(fileTypeColor)
-                            .font(.title3)
-                            .fontWeight(.medium)
+                        if attachment.isImage, let image = UIImage(data: attachment.fileData) {
+                            // Show actual image preview for photos
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 44, height: 44)
+                                .clipped()
+                                .cornerRadius(8)
+                        } else {
+                            // Show file type icon for non-images
+                            Image(systemName: attachment.fileIcon)
+                                .foregroundStyle(fileTypeColor)
+                                .font(.title3)
+                                .fontWeight(.medium)
+                        }
                     }
                 }
                 .buttonStyle(PlainButtonStyle())

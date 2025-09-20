@@ -36,13 +36,13 @@ struct EmojiFormSection: View {
                     }
                     
                     if selectedEmoji == nil {
-                        Text("Using app default: \(AppSettings.shared.defaultEmojiPlaceholder)")
+                        Text("Using app default")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
-                        Text("Custom emoji set")
+                        Text("Custom thumbnail set")
                             .font(.caption)
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 

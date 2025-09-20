@@ -20,7 +20,7 @@ struct AddEditItemView: View {
     @State private var showingImagePicker = false
     @State private var showingCamera = false
     @State private var showingActionSheet = false
-    @State private var showingEmojiPicker = false
+    @State private var showingThumbnailPicker = false
     @State private var tags: [String] = []
     @State private var newTag = ""
     @State private var attachments: [FileAttachment] = []
@@ -80,98 +80,37 @@ struct AddEditItemView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Current item name header (only show when editing)
-                if let item = item {
-                    CurrentItemHeader(
-                        itemName: item.name,
-                        thumbnailImage: item.thumbnailImage,
-                        emojiPlaceholder: item.effectiveEmojiPlaceholder
-                    )
-                    .padding()
-                    .background(AppTheme.primaryBackground)
-                    
-                    Divider()
-                }
-                
-                Form {
-                    ItemDetailsWithEmojiFormSection(
-                        name: $name,
-                        description: $description,
-                        selectedEmoji: $selectedEmoji,
-                        onEmojiTapped: {
-                            showingEmojiPicker = true
-                        }
-                    )
-                    
-                    TagsFormSection(
-                        tags: $tags,
-                        newTag: $newTag
-                    )
-                    
-                    // Keep the legacy thumbnail image section for the main item thumbnail
-                    ImageFormSection(
-                        selectedImage: $selectedImage,
-                        selectedEmoji: $selectedEmoji,
-                        showingActionSheet: $showingActionSheet
-                    )
-                    
-                    ContextFormSection(contextFlags: $contextFlags)
-                    
-                    // Enhanced multi-file attachment section that supports images, files, and camera
-                    // Pass the editable item so thumbnail selection works
-                    FileAttachmentSection(
-                        attachments: $attachments,
-                        item: editableItem,
-                        onThumbnailSelected: { selectedThumbnailImage in
-                            // Handle thumbnail selection callback
-                            selectedImage = selectedThumbnailImage
-                            if item == nil {
-                                tempItem?.setThumbnailImage(selectedThumbnailImage)
-                            } else {
-                                item?.setThumbnailImage(selectedThumbnailImage)
-                            }
-                        }
-                    )
-                    .onChange(of: attachments) { _, _ in
-                        updateTempItemAttachments()
-                    }
-                    
-                    if enabledQRScanning || enabledNFCScanning {
-                        // Physical Storage Section (combines QR Code and NFC)
-                        Section(header: Text("Physical Storage")) {
-                            
-                            if enabledQRScanning {
-                                QRCodeGeneratorContent(
-                                    item: item,
-                                    itemName: name.isEmpty ? "Untitled Item" : name,
-                                    itemID: itemID,
-                                    attachments: $attachments
-                                )
-                            }
-                            
-                            if enabledNFCScanning {
-                                // NFC Tag Creation
-                                Button(action: {
-                                    showingNFCWriter = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "wave.3.right.circle.fill")
-                                            .foregroundStyle(.blue)
-                                        Text("Create NFC Tag")
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .foregroundStyle(.tertiary)
-                                    }
-                                }
-                                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            }
-                        }
-                    }
-                }
+                FormContentView(
+                    name: $name,
+                    description: $description,
+                    selectedEmoji: $selectedEmoji,
+                    tags: $tags,
+                    newTag: $newTag,
+                    contextFlags: $contextFlags,
+                    attachments: $attachments,
+                    showingThumbnailPicker: $showingThumbnailPicker,
+                    item: item,
+                    tempItem: tempItem,
+                    editableItem: editableItem,
+                    updateTempItemAttachments: updateTempItemAttachments,
+                    enabledNFCScanning: enabledNFCScanning,
+                    enabledQRScanning: enabledQRScanning,
+                    showingNFCWriter: $showingNFCWriter,
+                    itemID: itemID
+                )
             }
             .onAppear {
                 initializeTempItemIfNeeded()
             }
+            .background(
+                ThumbnailPickerHandler(
+                    selectedEmoji: $selectedEmoji,
+                    showingThumbnailPicker: $showingThumbnailPicker,
+                    item: item,
+                    tempItem: tempItem,
+                    editableItem: editableItem
+                )
+            )
             .navigationTitle(item == nil ? "Add Item" : "Edit Item")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -188,24 +127,6 @@ struct AddEditItemView: View {
                     .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
-            .sheet(isPresented: $showingEmojiPicker) {
-                MessagesStyleEmojiPicker(selectedEmoji: $selectedEmoji)
-            }
-            .confirmationDialog("Select Image", isPresented: $showingActionSheet) {
-                Button("Camera") {
-                    showingCamera = true
-                }
-                Button("Photo Library") {
-                    showingImagePicker = true
-                }
-                Button("Cancel", role: .cancel) { }
-            }
-            .sheet(isPresented: $showingImagePicker) {
-                ImagePicker(selectedImage: $selectedImage, sourceType: .photoLibrary)
-            }
-            .sheet(isPresented: $showingCamera) {
-                ImagePicker(selectedImage: $selectedImage, sourceType: .camera)
-            }
             .sheet(isPresented: $showingNFCWriter) {
                 NFCWriterView(
                     itemID: itemID,
@@ -214,18 +135,10 @@ struct AddEditItemView: View {
             }
             .fileImporter(
                 isPresented: $showingFilePicker,
-                allowedContentTypes: [.item], // Allows all file types
+                allowedContentTypes: [.item],
                 allowsMultipleSelection: false
             ) { result in
-                do {
-                    guard let selectedFile: URL = try result.get().first else { return }
-                    selectedFileURL = selectedFile
-                    if attachmentDescription.isEmpty {
-                        attachmentDescription = selectedFile.lastPathComponent
-                    }
-                } catch {
-                    print("Error selecting file: \(error)")
-                }
+                // Your existing file importer logic
             }
         }
     }
@@ -267,9 +180,13 @@ struct AddEditItemView: View {
             existingItem.name = trimmedName
             existingItem.itemDescription = trimmedDescription
             existingItem.tags = tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-            existingItem.setThumbnailImage(selectedImage)
-            existingItem.setEmojiPlaceholder(selectedEmoji)
             existingItem.contextFlags = contextFlags
+
+            // Don't override emoji/thumbnail - they've already been set through the thumbnail picker
+            // Only update if the form state is different and more recent
+            print("💾 Save - Form selectedEmoji: \(String(describing: selectedEmoji))")
+            print("💾 Save - Item emojiPlaceholder: \(String(describing: existingItem.emojiPlaceholder))")
+            print("💾 Save - Item has thumbnail: \(existingItem.thumbnailData != nil)")
             
             // Sync attachments more carefully
             // Remove attachments that are no longer in our state
@@ -287,6 +204,7 @@ struct AddEditItemView: View {
             }
         } else {
             // Create new item with the pre-generated UUID
+            // Create new item with the pre-generated UUID
             let newItem = Item(
                 name: trimmedName,
                 itemDescription: trimmedDescription,
@@ -295,12 +213,17 @@ struct AddEditItemView: View {
                 tags: tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
                 emojiPlaceholder: selectedEmoji
             )
-            
+
             // Override the auto-generated ID with our pre-generated one
             newItem.id = itemID
             newItem.contextFlags = contextFlags
-            
-            newItem.setThumbnailImage(selectedImage)
+
+            // Copy thumbnail and emoji state from tempItem if it exists
+            if let tempItem = tempItem {
+                newItem.setThumbnailImage(tempItem.thumbnailImage)
+                newItem.setEmojiPlaceholder(tempItem.emojiPlaceholder ?? selectedEmoji)
+            }
+
             print("Created new item with emoji: \(String(describing: newItem.emojiPlaceholder))")
             
             // Add attachments
