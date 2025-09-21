@@ -153,6 +153,11 @@ class AppSettings {
         get { bool(forKey: "globalSearch", default: true) }
         set { UserDefaults.standard.set(newValue, forKey: "globalSearch") }
     }
+
+    var showItemDescriptions: Bool {
+        get { bool(forKey: "showItemDescriptions", default: true) }
+        set { UserDefaults.standard.set(newValue, forKey: "showItemDescriptions") }
+    }
     
     private init() {}
 }

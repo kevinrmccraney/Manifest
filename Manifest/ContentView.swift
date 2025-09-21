@@ -27,6 +27,7 @@ struct ContentView: View {
     private var enableNFC: Bool { settings.enableNFC }
     private var enableQR: Bool { settings.enableQR }
     private var globalSearch: Bool { settings.globalSearch }
+    private var showItemDescriptions: Bool { settings.showItemDescriptions }
     
     init() {
         let sortOption = AppSettings.shared.currentSortOption
@@ -141,6 +142,7 @@ struct ContentView: View {
                         GridView(
                             items: filteredItems,
                             showAttachmentIcons: showAttachmentIcons,
+                            showItemDescriptions: showItemDescriptions,
                             isShowingArchived: showArchivedItems
                         )
                         .background(AppTheme.secondaryBackground)
@@ -149,6 +151,7 @@ struct ContentView: View {
                         BandedItemListView(
                             items: filteredItems,
                             showAttachmentIcons: showAttachmentIcons,
+                            showItemDescriptions: showItemDescriptions,
                             isShowingArchived: showArchivedItems
                         )
                         .background(AppTheme.secondaryBackground)
@@ -225,26 +228,39 @@ struct ContentView: View {
                 Text("Choose how to sort your items")
             }
             .toolbar {
-                ToolbarItemGroup(placement: .bottomBar) {
-                    HStack(spacing: 16) {
-                        if enableNFC {
-                            Button(action: { showingNFCScanner = true }) {
-                                Image(systemName: "wave.3.right")
+                if enableNFC || enableQR {
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        HStack(spacing: 16) {
+                            if enableNFC {
+                                Button(action: { showingNFCScanner = true }) {
+                                    Image(systemName: "wave.3.right")
+                                }
+                            }
+                            
+                            if enableQR {
+                                Button(action: { showingQRScanner = true }) {
+                                    Image(systemName: "qrcode.viewfinder")
+                                }
                             }
                         }
                         
-                        if enableQR {
-                            Button(action: { showingQRScanner = true }) {
-                                Image(systemName: "qrcode.viewfinder")
+                        Spacer()
+                        
+                        if !showArchivedItems || (!searchText.isEmpty && globalSearch) {
+                            Button(action: { showingAddItem = true }) {
+                                Image(systemName: "plus")
                             }
                         }
                     }
-                    
-                    Spacer()
-                    
-                    if !showArchivedItems || (!searchText.isEmpty && globalSearch) {
-                        Button(action: { showingAddItem = true }) {
-                            Image(systemName: "plus")
+                } else {
+                    // Show only the add button when NFC and QR are both disabled
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Spacer()
+                        
+                        if !showArchivedItems || (!searchText.isEmpty && globalSearch) {
+                            Button(action: { showingAddItem = true }) {
+                                Image(systemName: "plus")
+                            }
                         }
                     }
                 }

@@ -11,8 +11,9 @@ struct BandedItemRowView: View {
     let item: Item
     let isEvenRow: Bool
     let showAttachmentIcons: Bool
+    let showItemDescriptions: Bool
     let frameHeight: CGFloat = 50
-    
+
     var rowBackground: Color {
         isEvenRow ? AppTheme.evenRowBackground : AppTheme.oddRowBackground
     }
@@ -52,11 +53,11 @@ struct BandedItemRowView: View {
                     .lineLimit(1)
                     .foregroundColor(.primary)
                 
-                if !item.itemDescription.isEmpty {
+                if !item.itemDescription.isEmpty && showItemDescriptions {
                     Text(item.itemDescription)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                        .lineLimit(2)
+                        .lineLimit(1)
                 }
                 
                 // Tags

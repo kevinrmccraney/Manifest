@@ -10,8 +10,9 @@ import SwiftUI
 struct ThemedGridItemView: View {
     let item: Item
     let showAttachmentIcons: Bool
+    let showItemDescriptions: Bool
     let frameHeight: CGFloat = 120
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Thumbnail - fixed height
@@ -101,7 +102,7 @@ struct ThemedGridItemView: View {
                 
                 // Description area - fixed height whether empty or not
                 Group {
-                    if !item.itemDescription.isEmpty {
+                    if !item.itemDescription.isEmpty && showItemDescriptions {
                         Text(item.itemDescription)
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -112,7 +113,7 @@ struct ThemedGridItemView: View {
                             .opacity(0) // Invisible but takes up space
                     }
                 }
-                .frame(height: 28) // Fixed height for 2 lines of caption text
+                .frame(height: showItemDescriptions ? 28 : 0) // Adjust height based on setting
                 
                 // Tags area - fixed height whether empty or not
                 Group {

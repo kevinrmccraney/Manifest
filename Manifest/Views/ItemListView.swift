@@ -11,6 +11,7 @@ import SwiftData
 struct BandedItemListView: View {
     let items: [Item]
     let showAttachmentIcons: Bool
+    let showItemDescriptions: Bool
     let isShowingArchived: Bool
     @Environment(\.modelContext) private var modelContext
     @State private var itemToDelete: Item?
@@ -29,9 +30,9 @@ struct BandedItemListView: View {
                         BandedItemRowView(
                             item: item,
                             isEvenRow: index % 2 == 0,
-                            showAttachmentIcons: showAttachmentIcons
+                            showAttachmentIcons: showAttachmentIcons,
+                            showItemDescriptions: showItemDescriptions
                         )
-                        
                         // Invisible NavigationLink overlay
                         NavigationLink(destination: ItemDetailView(item: item)) {
                             EmptyView()

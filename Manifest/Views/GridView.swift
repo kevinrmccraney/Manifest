@@ -11,6 +11,7 @@ import SwiftData
 struct GridView: View {
     let items: [Item]
     let showAttachmentIcons: Bool
+    let showItemDescriptions: Bool
     let isShowingArchived: Bool
     @Environment(\.modelContext) private var modelContext
     @State private var itemToDelete: Item?
@@ -27,7 +28,7 @@ struct GridView: View {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(items, id: \.id) { item in
                     NavigationLink(destination: ItemDetailView(item: item)) {
-                        ThemedGridItemView(item: item, showAttachmentIcons: showAttachmentIcons)
+                        ThemedGridItemView(item: item, showAttachmentIcons: showAttachmentIcons, showItemDescriptions: showItemDescriptions)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .simultaneousGesture(TapGesture().onEnded {

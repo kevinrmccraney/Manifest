@@ -29,11 +29,22 @@ struct SettingsView: View {
                         icon: "grid",
                         labelText: "Show Grid/List Toggle"
                     )
-
+                    
                     SimpleToggle(
                         isOn: $settings.showAttachmentIcons,
                         icon: "paperclip",
                         labelText: "Show Attachment Icons"
+                    )
+                    
+                    SimpleToggle(
+                        isOn: $settings.showItemDescriptions,
+                        icon: "text.alignleft",
+                        labelText: "Show Item Descriptions"
+                    )
+                    SimpleToggle(
+                        isOn: $settings.showSortPicker,
+                        icon: "arrow.up.arrow.down",
+                        labelText: "Show Sorting Options"
                     )
                 }
                 
@@ -59,12 +70,6 @@ struct SettingsView: View {
                 }
                 
                 Section(header: Text("Sorting")) {
-                    SimpleToggle(
-                        isOn: $settings.showSortPicker,
-                        icon: "arrow.up.arrow.down",
-                        labelText: "Show Sorting Options"
-                    )
-                    
                     // Default Sort Order Setting
                     HStack {
                         Image(systemName: "list.number")
