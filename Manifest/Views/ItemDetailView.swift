@@ -61,8 +61,8 @@ struct ItemDetailView: View {
                         ContextDisplayView(contextFlags: item.contextFlags)
                     }
                                         
-                    if item.hasAnyAttachment {
-                        MultiAttachmentsDisplayView(item: item)
+                    if !item.attachments.isEmpty {
+                        AttachmentDisplayView(attachments: item.attachments, displayStyle: .detail)
                     }
                     
                     // Tags

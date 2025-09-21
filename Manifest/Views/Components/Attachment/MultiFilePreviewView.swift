@@ -5,14 +5,6 @@
 //  Created by Kevin McCraney on 2025-09-18.
 //
 
-
-//
-//  MultiFilePreviewView.swift
-//  Manifest
-//
-//  Created by Kevin McCraney on 2025-09-18.
-//
-
 import SwiftUI
 import QuickLook
 import UIKit

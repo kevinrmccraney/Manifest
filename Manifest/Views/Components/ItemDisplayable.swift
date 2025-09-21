@@ -5,14 +5,6 @@
 //  Created by Kevin McCraney on 2025-09-21.
 //
 
-
-//
-//  ItemDisplayView.swift
-//  Manifest
-//
-//  Unified item display components
-//
-
 import SwiftUI
 
 // MARK: - Protocol

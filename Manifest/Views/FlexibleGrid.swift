@@ -5,14 +5,6 @@
 //  Created by Kevin McCraney on 2025-09-19.
 //
 
-
-//
-//  FlexibleGridView.swift
-//  Manifest
-//
-//  Simple grid that actually works for wrapping items
-//
-
 import SwiftUI
 
 struct FlexibleGrid<Content: View>: View {

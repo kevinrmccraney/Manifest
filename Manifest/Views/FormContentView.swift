@@ -2,14 +2,6 @@
 //  FormContentView.swift
 //  Manifest
 //
-//  Created by Kevin McCraney on 2025-09-19.
-//
-
-
-//
-//  FormContentView.swift
-//  Manifest
-//
 //  Created by Kevin McCraney on 2025-09-18.
 //
 

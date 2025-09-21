@@ -28,7 +28,13 @@ struct GridView: View {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(items, id: \.id) { item in
                     NavigationLink(destination: ItemDetailView(item: item)) {
-                        ThemedGridItemView(item: item, showAttachmentIcons: showAttachmentIcons, showItemDescriptions: showItemDescriptions)
+                        UnifiedItemCard(
+                            item: item,
+                            displayStyle: .grid,
+                            showAttachmentIcons: showAttachmentIcons,
+                            showItemDescriptions: showItemDescriptions,
+                            contextualData: nil
+                        )
                     }
                     .buttonStyle(PlainButtonStyle())
                     .simultaneousGesture(TapGesture().onEnded {

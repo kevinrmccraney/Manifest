@@ -5,14 +5,6 @@
 //  Created by Kevin McCraney on 2025-09-17.
 //
 
-
-//
-//  FileAttachmentManager.swift
-//  Manifest
-//
-//  Created by Kevin McCraney on 2025-09-17.
-//
-
 import SwiftUI
 import PhotosUI
 import UniformTypeIdentifiers

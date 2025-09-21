@@ -151,7 +151,7 @@ final class Item {
     
     // Legacy attachment support - check both new and old systems
     var hasAnyAttachment: Bool {
-        return !attachments.isEmpty || attachmentData != nil
+        return !attachments.isEmpty
     }
     
     // Legacy methods for backward compatibility

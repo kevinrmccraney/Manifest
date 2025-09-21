@@ -5,14 +5,6 @@
 //  Created by Kevin McCraney on 2025-09-12.
 //
 
-
-//
-//  ItemContextFlags.swift
-//  Manifest
-//
-//  Created by Kevin McCraney on 2025-09-12.
-//
-
 import Foundation
 
 struct ItemContextFlags: Codable {

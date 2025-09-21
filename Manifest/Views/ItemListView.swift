@@ -27,13 +27,33 @@ struct BandedItemListView: View {
                 if !deletingItems.contains(item.id) {
                     ZStack {
                         // The row content
-                        BandedItemRowView(
+                        UnifiedItemCard(
                             item: item,
-                            isEvenRow: index % 2 == 0,
+                            displayStyle: .listRow(isEven: index % 2 == 0),
                             showAttachmentIcons: showAttachmentIcons,
-                            showItemDescriptions: showItemDescriptions
-                        )
-                        // Invisible NavigationLink overlay
+                            showItemDescriptions: showItemDescriptions,
+                            contextualData: UnifiedItemCard.ContextualData(
+                                isShowingArchived: isShowingArchived,
+                                onEdit: {
+                                    itemToEdit = item
+                                    showingEditSheet = true
+                                },
+                                onDelete: {
+                                    itemToDelete = item
+                                    showingDeleteAlert = true
+                                },
+                                onTogglePin: {
+                                    withAnimation {
+                                        item.togglePin()
+                                    }
+                                },
+                                onToggleArchive: {
+                                    withAnimation {
+                                        item.toggleArchive()
+                                    }
+                                }
+                            )
+                        )                        // Invisible NavigationLink overlay
                         NavigationLink(destination: ItemDetailView(item: item)) {
                             EmptyView()
                         }
