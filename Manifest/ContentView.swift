@@ -104,39 +104,23 @@ struct ContentView: View {
                 }
                 
                 if filteredItems.isEmpty && !searchText.isEmpty {
-                    SearchEmptyView(searchText: searchText)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(AppTheme.secondaryBackground)
+                    UnifiedEmptyStateView(
+                        config: .noSearchResults(searchText: searchText)
+                    )
+                    .background(AppTheme.secondaryBackground)
                 } else if currentItems.isEmpty && searchText.isEmpty {
-                    if showArchivedItems {
-                        VStack(spacing: 20) {
-                            Image(systemName: "tray")
-                                .font(.system(size: 60))
-                                .foregroundStyle(.gray)
-                            
-                            Text("No Archived Items")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                            
-                            Text("Items you archive will appear here")
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                            
-                            Button("Back to All Items") {
+                    UnifiedEmptyStateView(
+                        config: showArchivedItems
+                            ? .noArchivedItems {
                                 withAnimation {
                                     showArchivedItems = false
                                 }
                             }
-                            .buttonStyle(.borderedProminent)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(AppTheme.secondaryBackground)
-                    } else {
-                        EmptyStateView(showingAddItem: $showingAddItem)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(AppTheme.secondaryBackground)
-                    }
+                            : .noItems {
+                                showingAddItem = true
+                            }
+                    )
+                    .background(AppTheme.secondaryBackground)
                 } else {
                     if showingGridView {
                         GridView(
