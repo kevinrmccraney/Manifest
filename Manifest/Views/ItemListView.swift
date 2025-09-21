@@ -66,21 +66,12 @@ struct BandedItemListView: View {
                         .tint(item.isPinned ? .gray : .purple)
                         
                         // Archive action on right swipe
-                        if isShowingArchived {
-                            Button("Unarchive") {
-                                withAnimation {
-                                    item.unarchive()
-                                }
+                        Button(isShowingArchived ? "Unarchive" : "Archive") {
+                            withAnimation {
+                                item.toggleArchive()
                             }
-                            .tint(.blue)
-                        } else {
-                            Button("Archive") {
-                                withAnimation {
-                                    item.archive()
-                                }
-                            }
-                            .tint(.blue)
                         }
+                        .tint(.blue)
                     }
                     .contextMenu {
                         contextMenuItems(for: item)
@@ -131,17 +122,9 @@ struct BandedItemListView: View {
             }
         }
         
-        if isShowingArchived {
-            Button("Unarchive") {
-                withAnimation {
-                    item.unarchive()
-                }
-            }
-        } else {
-            Button("Archive") {
-                withAnimation {
-                    item.archive()
-                }
+        Button(isShowingArchived ? "Unarchive" : "Archive") {
+            withAnimation {
+                item.toggleArchive()
             }
         }
         

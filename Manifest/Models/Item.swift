@@ -81,31 +81,14 @@ final class Item {
         lastViewedAt = Date()
         viewCount += 1
     }
-    
-    // Archive/Unarchive methods
-    func archive() {
-        isArchived = true
-        updateTimestamp()
-    }
-    
-    func unarchive() {
-        isArchived = false
-        updateTimestamp()
-    }
-    
-    // Pin/Unpin methods
-    func pin() {
-        isPinned = true
-        updateTimestamp()
-    }
-    
-    func unpin() {
-        isPinned = false
-        updateTimestamp()
-    }
-    
+        
     func togglePin() {
         isPinned.toggle()
+        updateTimestamp()
+    }
+
+    func toggleArchive() {
+        isArchived.toggle()
         updateTimestamp()
     }
     

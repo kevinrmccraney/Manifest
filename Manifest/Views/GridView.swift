@@ -54,17 +54,9 @@ struct GridView: View {
                     }
                 }
                 
-                if isShowingArchived {
-                    Button("Unarchive") {
-                        withAnimation {
-                            item.unarchive()
-                        }
-                    }
-                } else {
-                    Button("Archive") {
-                        withAnimation {
-                            item.archive()
-                        }
+                Button(isShowingArchived ? "Unarchive" : "Archive") {
+                    withAnimation {
+                        item.toggleArchive()
                     }
                 }
                 
@@ -97,17 +89,9 @@ struct GridView: View {
             }
         }
         
-        if isShowingArchived {
-            Button("Unarchive") {
-                withAnimation {
-                    item.unarchive()
-                }
-            }
-        } else {
-            Button("Archive") {
-                withAnimation {
-                    item.archive()
-                }
+        Button(isShowingArchived ? "Unarchive" : "Archive") {
+            withAnimation {
+                item.toggleArchive()
             }
         }
         

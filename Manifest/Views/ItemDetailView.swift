@@ -114,17 +114,9 @@ struct ItemDetailView: View {
                     showingEditSheet = true
                 }
             }
-            if item.isArchived {
-                Button("Unarchive") {
-                    withAnimation {
-                        item.unarchive()
-                    }
-                }
-            } else {
-                Button("Archive") {
-                    withAnimation {
-                        item.archive()
-                    }
+            Button(item.isArchived ? "Unarchive" : "Archive") {
+                withAnimation {
+                    item.toggleArchive()
                 }
             }
             
