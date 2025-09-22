@@ -91,6 +91,8 @@ private struct ThumbnailFormSection: View {
                 ThumbnailControlsView(
                     hasImageThumbnail: hasImageThumbnail,
                     hasCustomEmoji: selectedEmoji != nil || item?.emojiPlaceholder != nil,
+                    selectedEmoji: selectedEmoji,
+                    item: item,
                     onChooseThumbnail: onEmojiTapped,
                     onUseDefault: {
                         item?.setThumbnailImage(nil)
@@ -142,8 +144,16 @@ private struct ThumbnailPreviewButton: View {
 private struct ThumbnailControlsView: View {
     let hasImageThumbnail: Bool
     let hasCustomEmoji: Bool
+    let selectedEmoji: String?
+    let item: Item?
     let onChooseThumbnail: () -> Void
     let onUseDefault: () -> Void
+    
+    // Check if the current emoji is different from the app default
+    private var hasNonDefaultCustomEmoji: Bool {
+        guard let currentEmoji = selectedEmoji ?? item?.emojiPlaceholder else { return false }
+        return currentEmoji != AppSettings.shared.defaultEmojiPlaceholder
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -152,7 +162,7 @@ private struct ThumbnailControlsView: View {
             }
             .buttonStyle(.bordered)
             
-            if hasImageThumbnail || hasCustomEmoji {
+            if hasImageThumbnail || hasNonDefaultCustomEmoji {
                 Button("Use Default Thumbnail") {
                     onUseDefault()
                 }

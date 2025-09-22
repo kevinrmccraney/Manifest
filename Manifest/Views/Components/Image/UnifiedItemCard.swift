@@ -105,13 +105,14 @@ struct UnifiedItemCard: View {
     private func thumbnailWithOverlays(size: CGFloat, cornerRadius: CGFloat = 8) -> some View {
         ZStack(alignment: .topTrailing) {
             ItemDisplayComponents.makeThumbnail(for: item, size: size, cornerRadius: cornerRadius)
+                .frame(maxWidth: .infinity) // Center the thumbnail
             
             if displayStyle == .grid {
                 gridOverlays
             }
         }
     }
-    
+
     private var gridOverlays: some View {
         VStack {
             HStack {
