@@ -15,9 +15,11 @@ struct ContentView: View {
     @State private var showingQRItemNotFound = false
     @State private var showArchivedItems = false
     @State private var showingSortPicker = false
+    @State private var showingOnboarding = false
     
     @State private var settingsRefreshId = UUID()
-    
+    @State private var onboardingManager = OnboardingManager.shared
+
     private var settings: AppSettings { AppSettings.shared }
     private var showingGridView: Bool { settings.defaultViewMode == .grid }
     private var currentSortOption: SortOption { settings.currentSortOption }
@@ -297,11 +299,22 @@ struct ContentView: View {
                 }
             }
         }
-        .background(AppTheme.secondaryBackground.ignoresSafeArea())
-        .onOpenURL { url in
-            handleDeepLink(url: url)
-        }
-    }
+                .background(AppTheme.secondaryBackground.ignoresSafeArea())
+                .onOpenURL { url in
+                    handleDeepLink(url: url)
+                }
+                .onAppear {
+                    // Show onboarding on first launch if no items exist
+                    if !onboardingManager.hasCompletedOnboarding {
+                        showingOnboarding = true
+                    }
+                }
+                .fullScreenCover(isPresented: $showingOnboarding) {
+                    OnboardingView {
+                        showingOnboarding = false
+                    }
+                }
+            }
     
     // MARK: - Helper Functions
     

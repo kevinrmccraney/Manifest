@@ -11,7 +11,8 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable private var settings = AppSettings.shared
     @State private var localGlobalSearch: Bool = AppSettings.shared.globalSearch
-    
+    @State private var onboardingManager = OnboardingManager.shared
+
     var body: some View {
         NavigationView {
             Form {
@@ -126,6 +127,22 @@ struct SettingsView: View {
                         }
                         
                         Spacer()
+                    }
+                }
+                
+                if settings.debugMode {
+                    Section(header: Text("Debug")) {
+                        HStack {
+                            Text("Onboarding Status:")
+                            Spacer()
+                            Text(onboardingManager.hasCompletedOnboarding ? "Completed" : "Not Completed")
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Button("Reset Onboarding") {
+                            onboardingManager.resetOnboarding()
+                        }
+                        .foregroundStyle(.orange)
                     }
                 }
             }
