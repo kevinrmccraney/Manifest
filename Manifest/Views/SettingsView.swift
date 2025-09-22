@@ -9,7 +9,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var settings = AppSettings.shared
+    @Bindable private var settings = AppSettings.shared
+    @State private var localGlobalSearch: Bool = AppSettings.shared.globalSearch
     
     var body: some View {
         NavigationView {
@@ -51,12 +52,15 @@ struct SettingsView: View {
                 // Search Settings Section
                 Section(header: Text("Search")) {
                     SimpleToggle(
-                        isOn: $settings.globalSearch,
+                        isOn: $localGlobalSearch,
                         icon: "magnifyingglass.circle",
                         labelText: "Global Search"
                     )
+                    .onChange(of: localGlobalSearch) { _, newValue in
+                        settings.globalSearch = newValue
+                    }
                     
-                    if !settings.globalSearch {
+                    if !localGlobalSearch {
                         HStack {
                             Image(systemName: "info.circle")
                                 .foregroundStyle(.blue)
@@ -68,7 +72,6 @@ struct SettingsView: View {
                         .padding(.leading, 8)
                     }
                 }
-                
                 Section(header: Text("Sorting")) {
                     // Default Sort Order Setting
                     HStack {
