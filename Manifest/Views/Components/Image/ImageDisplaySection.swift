@@ -24,8 +24,7 @@ struct ImageDisplaySection: View {
                 .frame(height: frameHeight)
                 .overlay(
                     Text(item.effectiveEmojiPlaceholder)
-                        .font(.system(size: frameHeight * 0.9))
+                        .font(.system(size: frameHeight * 0.4))
                 )
         }
-    }
-}
+    }}
