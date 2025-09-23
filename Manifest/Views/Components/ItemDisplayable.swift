@@ -81,7 +81,7 @@ struct ItemDisplayComponents {
     @ViewBuilder
     static func makeAttachmentIndicator(for item: Item, showAttachmentIcons: Bool, style: AttachmentStyle = .overlay) -> some View {
         if item.hasAnyAttachment && showAttachmentIcons {
-            let totalAttachments = item.attachments.count + (item.attachmentData != nil ? 1 : 0)
+            let totalAttachments = item.attachments.count
             
             HStack(spacing: 2) {
                 Image(systemName: "doc.fill")

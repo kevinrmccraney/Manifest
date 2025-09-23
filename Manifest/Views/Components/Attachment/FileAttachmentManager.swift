@@ -25,11 +25,9 @@ class FileAttachmentManager: ObservableObject {
             .removeDuplicates()
             .sink { [weak self] photos in
                 if !photos.isEmpty {
-                    Task {
+                    Task { @MainActor in
                         await self?.processSelectedPhotos(photos)
-                        await MainActor.run {
-                            self?.selectedPhotos = []
-                        }
+                        self?.selectedPhotos = []
                     }
                 }
             }
@@ -119,6 +117,7 @@ class FileAttachmentManager: ObservableObject {
         }
     }
     
+    @MainActor
     private func processSelectedPhotos(_ photos: [PhotosPickerItem]) async {
         print("Processing \(photos.count) selected photos")
         
@@ -144,10 +143,8 @@ class FileAttachmentManager: ObservableObject {
             }
         }
         
-        await MainActor.run {
-            self.newAttachments.append(contentsOf: processedAttachments)
-            print("Added \(processedAttachments.count) photo attachments")
-        }
+        self.newAttachments.append(contentsOf: processedAttachments)
+        print("Added \(processedAttachments.count) photo attachments")
     }
     
     private func processCapturedImage(_ image: UIImage) {

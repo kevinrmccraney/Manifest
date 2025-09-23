@@ -46,12 +46,7 @@ final class Item {
     @Relationship(deleteRule: .cascade, inverse: \FileAttachment.item)
     var attachments: [FileAttachment] = []
     
-    // Keep legacy attachment properties for migration compatibility
-    @Attribute(.externalStorage) var attachmentData: Data?
-    var attachmentFilename: String?
-    var attachmentDescription: String?
-    
-    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], attachmentData: Data? = nil, attachmentFilename: String? = nil, attachmentDescription: String? = nil, isArchived: Bool = false, isPinned: Bool = false, emojiPlaceholder: String? = nil, itemContext: Data? = nil) {
+    init(name: String, itemDescription: String = "", thumbnailData: Data? = nil, customFields: Data? = nil, tags: [String] = [], isArchived: Bool = false, isPinned: Bool = false, emojiPlaceholder: String? = nil, itemContext: Data? = nil) {
         self.id = UUID()
         self.name = name
         self.itemDescription = itemDescription
@@ -62,16 +57,12 @@ final class Item {
         self.thumbnailData = thumbnailData
         self.customFields = customFields
         self.tags = tags
-        self.attachmentData = attachmentData
-        self.attachmentFilename = attachmentFilename
-        self.attachmentDescription = attachmentDescription
         self.attachments = []
         self.isArchived = isArchived
         self.isPinned = isPinned
         self.emojiPlaceholder = emojiPlaceholder
         self.itemContext = itemContext
     }
-    
     func updateTimestamp() {
         self.updatedAt = Date()
     }
@@ -149,43 +140,9 @@ final class Item {
         updateTimestamp()
     }
     
-    // Legacy attachment support - check both new and old systems
+    // Check if item has any attachments
     var hasAnyAttachment: Bool {
         return !attachments.isEmpty
-    }
-    
-    // Legacy methods for backward compatibility
-    func setAttachment(data: Data?, filename: String?, description: String?) {
-        attachmentData = data
-        attachmentFilename = filename
-        attachmentDescription = description
-        updateTimestamp()
-    }
-    
-    var fileExtension: String {
-        guard let filename = attachmentFilename else { return "" }
-        return (filename as NSString).pathExtension.lowercased()
-    }
-    
-    var fileIcon: String {
-        // Check new attachments first
-        if !attachments.isEmpty {
-            return attachments.first?.fileIcon ?? "doc.fill"
-        }
-        
-        // Fall back to legacy attachment
-        switch fileExtension {
-        case "pdf": return "doc.fill"
-        case "doc", "docx": return "doc.text.fill"
-        case "xls", "xlsx": return "tablecells.fill"
-        case "ppt", "pptx": return "rectangle.fill.on.rectangle.fill"
-        case "txt": return "doc.text"
-        case "jpg", "jpeg", "png", "gif": return "photo.fill"
-        case "mp4", "mov", "avi": return "video.fill"
-        case "mp3", "wav", "m4a": return "music.note"
-        case "zip", "rar": return "archivebox.fill"
-        default: return "doc.fill"
-        }
     }
     
     // Add attachment method

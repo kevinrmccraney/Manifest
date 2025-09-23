@@ -34,11 +34,6 @@ struct AddEditItemView: View {
     // NFC related state
     @State private var showingNFCWriter = false
     
-    // Legacy support
-    @State private var selectedFileURL: URL?
-    @State private var attachmentDescription = ""
-    @State private var showingFilePicker = false
-    
     let item: Item?
     
     // Create a persistent item for thumbnail selection
@@ -67,7 +62,6 @@ struct AddEditItemView: View {
             _selectedEmoji = State(initialValue: item.emojiPlaceholder)
             _tags = State(initialValue: item.tags)
             _attachments = State(initialValue: item.attachments)
-            _attachmentDescription = State(initialValue: item.attachmentDescription ?? item.attachmentFilename ?? "")
             _itemID = State(initialValue: item.id) // Use existing ID for editing
             _contextFlags = State(initialValue: item.contextFlags)
             _tempItem = State(initialValue: nil) // Existing items don't need a temp item
@@ -132,13 +126,6 @@ struct AddEditItemView: View {
                     itemID: itemID,
                     itemName: name.isEmpty ? "Untitled Item" : name
                 )
-            }
-            .fileImporter(
-                isPresented: $showingFilePicker,
-                allowedContentTypes: [.item],
-                allowsMultipleSelection: false
-            ) { result in
-                // Your existing file importer logic
             }
         }
     }
@@ -211,6 +198,8 @@ struct AddEditItemView: View {
                 thumbnailData: nil,
                 customFields: nil,
                 tags: tags.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
+                isArchived: false,
+                isPinned: false,
                 emojiPlaceholder: selectedEmoji
             )
 

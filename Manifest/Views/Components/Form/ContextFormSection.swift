@@ -66,26 +66,7 @@ struct ContextFormSection: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                         .padding(.vertical, 4)
-                        
-                        if contextFlags.hasAnyFlags {
-                            HStack {
-                                Text("Preview:")
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption)
-                                
-                                HStack(spacing: 6) {
-                                    if contextFlags.isFragile {
-                                        ContextBadgeView(type: .fragile, size: .small)
-                                    }
-                                    if contextFlags.isHeavy {
-                                        ContextBadgeView(type: .heavy, size: .small)
-                                    }
-                                }
-                                
-                                Spacer()
-                            }
-                            .padding(.top, 8)
-                        }
+
                     }
                 },
                 label: {
