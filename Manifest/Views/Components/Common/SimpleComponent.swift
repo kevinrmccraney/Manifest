@@ -37,6 +37,69 @@ struct SimpleToggle: View {
     }
 }
 
+struct SimpleTextComponent: View {
+    let icon: String
+    let labelText: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundStyle(.blue)
+                .frame(width: 24, height: 24)
+            
+            Text(labelText).font(.caption)
+                .foregroundStyle(.secondary)
+            
+            Spacer()
+        }.padding(.leading, 8)
+    }
+}
+
+struct ConditionalTextComponent: View {
+    let icon: String
+    let primaryLabelText: String
+    let secondaryLabelText: String
+    let conditional: Bool
+    let primaryIcon: String?
+    let secondaryIcon: String?
+    
+    init(
+        icon: String,
+        primaryLabelText: String,
+        secondaryLabelText: String,
+        conditional: Bool,
+        primaryIcon: String? = nil,
+        secondaryIcon: String? = nil
+    ) {
+        self.icon = icon
+        self.primaryLabelText = primaryLabelText
+        self.secondaryLabelText = secondaryLabelText
+        self.conditional = conditional
+        self.primaryIcon = primaryIcon
+        self.secondaryIcon = secondaryIcon
+    }
+
+    
+    var body: some View{
+        if conditional{
+            SimpleTextComponent(
+                icon: primaryIcon ?? icon,
+                labelText: primaryLabelText
+                
+            )
+        }
+        else {
+            SimpleTextComponent(
+                icon: secondaryIcon ?? icon,
+                labelText: secondaryLabelText
+                
+            )
+        }
+    }
+}
+
+
+
 struct SimplePicker: View {
     @Binding var selection: ViewMode
     var icon: String

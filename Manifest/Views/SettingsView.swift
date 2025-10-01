@@ -12,6 +12,7 @@ struct SettingsView: View {
     @Bindable private var settings = AppSettings.shared
     @State private var localGlobalSearch: Bool = AppSettings.shared.globalSearch
     @State private var onboardingManager = OnboardingManager.shared
+    @EnvironmentObject var iCloudSettings: ICloudSettings
 
     var body: some View {
         NavigationView {
@@ -111,22 +112,51 @@ struct SettingsView: View {
                     )
                 }
 
-                // About Section
-                Section(header: Text("About")) {
-                    HStack {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(.blue)
-                            .frame(width: 24, height: 24)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Manifest")
-                                .font(.body)
-                            Text("Version 1.0")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                Section(header: Text("Data Sync")) {
+                    if iCloudSettings.isAvailable {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "icloud")
+                                    .foregroundStyle(.blue)
+                                    .frame(width: 24, height: 24)
+                                
+                                Text("iCloud Sync")
+                                
+                                Spacer()
+                                
+                                Toggle("", isOn: $iCloudSettings.isEnabled)
+                                    .labelsHidden()
+                            }
+                            
+                            ConditionalTextComponent(
+                                icon: "info.circle",
+                                primaryLabelText: "Your items will sync across all your devices signed into the same iCloud account. Restart the app to apply changes.",
+                                secondaryLabelText: "Items are stored locally on this device only. Restart the app to apply changes.",
+                                conditional: iCloudSettings.isEnabled
+                            )
                         }
-                        
-                        Spacer()
+                    } else {
+                        HStack {
+                            Image(systemName: "icloud.slash")
+                                .foregroundStyle(.gray)
+                                .frame(width: 24, height: 24)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("iCloud Not Available")
+                                Text("Sign into iCloud in Settings to enable sync")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer()
+                        }
+                    }
+                    if settings.debugMode {
+                        Button("Refresh iCloud Status") {
+                            iCloudSettings.checkiCloudAvailability()
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.blue)
                     }
                 }
                 
@@ -145,6 +175,24 @@ struct SettingsView: View {
                         .foregroundStyle(.orange)
                     }
                 }
+                // About Section
+                Section(header: Text("About")) {
+                    HStack {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.blue)
+                            .frame(width: 24, height: 24)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Manifest")
+                                .font(.body)
+                            Text("Version 1.0")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                    }
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -158,3 +206,4 @@ struct SettingsView: View {
         }
     }
 }
+

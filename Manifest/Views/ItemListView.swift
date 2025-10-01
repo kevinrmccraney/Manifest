@@ -68,9 +68,7 @@ struct BandedItemListView: View {
                         // Delete action on left swipe
                         Button("Delete", role: .destructive) {
                             // Immediately hide the item with animation
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                deletingItems.insert(item.id)
-                            }
+                            deletingItems.insert(item.id)
                             // Then show confirmation dialog
                             itemToDelete = item
                             showingDeleteAlert = true
@@ -109,9 +107,7 @@ struct BandedItemListView: View {
             Button("Cancel", role: .cancel) {
                 // If cancelled, restore the item
                 if let item = itemToDelete {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        deletingItems.remove(item.id)
-                    }
+                    deletingItems.remove(item.id)
                 }
                 itemToDelete = nil
             }
